@@ -2,7 +2,7 @@
 <robot name="quadrupedal_robot2" xmlns:xacro="https://ros.org/wiki/xacro">
 	
 	<xacro:property name="PI" value="3.14159"/>
-	<xacro:property name="PATH" value="/home/haruki/prog/LeggedRobot/quadrupedal"/>
+	<xacro:property name="PATH" value=""/>
 
 	<xacro:macro name="link_macro" params="name ixx ixy ixz iyy iyz izz mass filename color">
 		<link name="${name}">
