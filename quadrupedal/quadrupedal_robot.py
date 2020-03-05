@@ -16,8 +16,8 @@ MAX_VELOCITY = 7
 if __name__ == "__main__":
     motorDict = {"rfHip":0, "rfKnee":1, "lfHip":2, "lfKnee":3, "rhHip":4, "rhKnee":5, "lhHip":6, "lhKnee":7}
 
-    physicsClient = p.connect(p.GUI)#or p.DIRECT for non-graphical version
-    p.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
+    physicsClient = p.connect(p.GUI)
+    p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.setGravity(0,0,-9.8)
     planeId = p.loadURDF("plane.urdf")
     robotStartPos = [0,0,0.3]
