@@ -7,63 +7,107 @@
   <!--link name="world"/>
   <joint name="world_joint" type="floating">
 		<parent link="world"/>
-		<child link="body"/> 
+		<child link="base"/> 
     <origin  rpy="0 0 0" xyz="0 0 0"/>
 	</joint-->
-  <link name="body">
+  <link name="base">
     <inertial>
-      <mass value="3.387196"/>
-      <inertia ixx="0.037696260802" ixy="0.0" ixz="0.0" iyy="0.07956409287" iyz="0.0" izz="0.073777565481"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="2.792"/>
+      <inertia ixx="0.017409405067" ixy="0.0" ixz="0.0" iyy="0.043070296402" iyz="0.0" izz="0.052179256932"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/body.stl"/>
+        <mesh filename="/meshes/stl/base.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/body.stl"/>
+        <mesh filename="/meshes/stl/base.stl"/>
       </geometry>
     </collision>
   </link>
-  <gazebo reference="body">
+  <gazebo reference="base">
     <mu1 value="1.0"/>
     <mu2 value="2.0"/>
     <kp value="1000000"/>
     <kd value="1.0"/>
     <material>Gazebo/Blue</material>
   </gazebo>
-  <joint name="rf_body_joint" type="revolute">
-    <parent link="body"/>
-    <child link="rf_upper_link"/>
-    <axis xyz="0 1 0"/>
-    <origin rpy="0.0 0.0 3.14159" xyz="0.19 -0.11 0.06"/>
+  <joint name="rf_abad_joint" type="revolute">
+    <parent link="base"/>
+    <child link="rf_abduction_link"/>
+    <axis xyz="1 0 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.2 -0.11 0.0"/>
     <dynamics damping="0.02"/>
     <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
   </joint>
-  <transmission name="rf_body_joint_trans">
+  <transmission name="rf_abad_joint_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="rf_body_joint">
+    <joint name="rf_abad_joint">
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="rf_body_motor">
+    <actuator name="rf_abad_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanismReduction>1</mechanismReduction>
+    </actuator>
+  </transmission>
+  <link name="rf_abduction_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.0216"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="3.6e-06" iyz="0.0" izz="3.06e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="/meshes/stl/abduction_link.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="/meshes/stl/abduction_link.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="rf_abduction_link">
+    <mu1 value="1.0"/>
+    <mu2 value="2.0"/>
+    <kp value="1000000"/>
+    <kd value="1.0"/>
+    <material>Gazebo/Red</material>
+  </gazebo>
+  <joint name="rf_hip_joint" type="revolute">
+    <parent link="rf_abduction_link"/>
+    <child link="rf_upper_link"/>
+    <axis xyz="0 1 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+    <dynamics damping="0.02"/>
+    <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
+  </joint>
+  <transmission name="rf_hip_joint_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="rf_hip_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="rf_hip_motor">
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
       <mechanismReduction>1</mechanismReduction>
     </actuator>
   </transmission>
   <link name="rf_upper_link">
     <inertial>
-      <mass value="0.4208"/>
-      <inertia ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 -0.033267"/>
+      <mass value="0.376687"/>
+      <inertia ixx="0.001895275931" ixy="0.0" ixz="0.0" iyy="0.002059293642" iyz="0.0" izz="0.00028213453"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/upper_leg.stl"/>
+        <mesh filename="/meshes/stl/upper_link.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/upper_leg.stl"/>
+        <mesh filename="/meshes/stl/upper_link.stl"/>
       </geometry>
     </collision>
   </link>
@@ -76,9 +120,9 @@
   </gazebo>
   <joint name="rf_knee_joint" type="revolute">
     <parent link="rf_upper_link"/>
-    <child link="rf_under_link"/>
+    <child link="rf_lower_link"/>
     <axis xyz="0 1 0"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.2"/>
     <dynamics damping="0.02"/>
     <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
   </joint>
@@ -92,60 +136,104 @@
       <mechanismReduction>1</mechanismReduction>
     </actuator>
   </transmission>
-  <link name="rf_under_link">
+  <link name="rf_lower_link">
     <inertial>
-      <mass value="0.4208"/>
-      <inertia ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.155989"/>
+      <mass value="0.140882"/>
+      <inertia ixx="0.000664235357" ixy="0.0" ixz="0.0" iyy="0.000664515268" iyz="0.0" izz="1.9650311e-05"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/under_leg.stl"/>
+        <mesh filename="/meshes/stl/lower_link.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/under_leg.stl"/>
+        <mesh filename="/meshes/stl/lower_link.stl"/>
       </geometry>
     </collision>
   </link>
-  <gazebo reference="rf_under_link">
+  <gazebo reference="rf_lower_link">
     <mu1 value="1.0"/>
     <mu2 value="2.0"/>
     <kp value="1000000"/>
     <kd value="1.0"/>
     <material>Gazebo/Red</material>
   </gazebo>
-  <joint name="lf_body_joint" type="revolute">
-    <parent link="body"/>
-    <child link="lf_upper_link"/>
-    <axis xyz="0 1 0"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.19 0.11 0.06"/>
+  <joint name="lf_abad_joint" type="revolute">
+    <parent link="base"/>
+    <child link="lf_abduction_link"/>
+    <axis xyz="1 0 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.2 0.11 0.0"/>
     <dynamics damping="0.02"/>
     <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
   </joint>
-  <transmission name="lf_body_joint_trans">
+  <transmission name="lf_abad_joint_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="lf_body_joint">
+    <joint name="lf_abad_joint">
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="lf_body_motor">
+    <actuator name="lf_abad_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanismReduction>1</mechanismReduction>
+    </actuator>
+  </transmission>
+  <link name="lf_abduction_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.0216"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="3.6e-06" iyz="0.0" izz="3.06e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="/meshes/stl/abduction_link.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="/meshes/stl/abduction_link.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="lf_abduction_link">
+    <mu1 value="1.0"/>
+    <mu2 value="2.0"/>
+    <kp value="1000000"/>
+    <kd value="1.0"/>
+    <material>Gazebo/Red</material>
+  </gazebo>
+  <joint name="lf_hip_joint" type="revolute">
+    <parent link="lf_abduction_link"/>
+    <child link="lf_upper_link"/>
+    <axis xyz="0 1 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+    <dynamics damping="0.02"/>
+    <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
+  </joint>
+  <transmission name="lf_hip_joint_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="lf_hip_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="lf_hip_motor">
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
       <mechanismReduction>1</mechanismReduction>
     </actuator>
   </transmission>
   <link name="lf_upper_link">
     <inertial>
-      <mass value="0.4208"/>
-      <inertia ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 -0.033267"/>
+      <mass value="0.376687"/>
+      <inertia ixx="0.001895275931" ixy="0.0" ixz="0.0" iyy="0.002059293642" iyz="0.0" izz="0.00028213453"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/upper_leg.stl"/>
+        <mesh filename="/meshes/stl/upper_link.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/upper_leg.stl"/>
+        <mesh filename="/meshes/stl/upper_link.stl"/>
       </geometry>
     </collision>
   </link>
@@ -158,9 +246,9 @@
   </gazebo>
   <joint name="lf_knee_joint" type="revolute">
     <parent link="lf_upper_link"/>
-    <child link="lf_under_link"/>
+    <child link="lf_lower_link"/>
     <axis xyz="0 1 0"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.2"/>
     <dynamics damping="0.02"/>
     <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
   </joint>
@@ -174,60 +262,104 @@
       <mechanismReduction>1</mechanismReduction>
     </actuator>
   </transmission>
-  <link name="lf_under_link">
+  <link name="lf_lower_link">
     <inertial>
-      <mass value="0.4208"/>
-      <inertia ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.155989"/>
+      <mass value="0.140882"/>
+      <inertia ixx="0.000664235357" ixy="0.0" ixz="0.0" iyy="0.000664515268" iyz="0.0" izz="1.9650311e-05"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/under_leg.stl"/>
+        <mesh filename="/meshes/stl/lower_link.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/under_leg.stl"/>
+        <mesh filename="/meshes/stl/lower_link.stl"/>
       </geometry>
     </collision>
   </link>
-  <gazebo reference="lf_under_link">
+  <gazebo reference="lf_lower_link">
     <mu1 value="1.0"/>
     <mu2 value="2.0"/>
     <kp value="1000000"/>
     <kd value="1.0"/>
     <material>Gazebo/Red</material>
   </gazebo>
-  <joint name="rh_body_joint" type="revolute">
-    <parent link="body"/>
-    <child link="rh_upper_link"/>
-    <axis xyz="0 1 0"/>
-    <origin rpy="0.0 0.0 3.14159" xyz="-0.19 -0.11 0.06"/>
+  <joint name="rh_abad_joint" type="revolute">
+    <parent link="base"/>
+    <child link="rh_abduction_link"/>
+    <axis xyz="1 0 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="-0.2 -0.11 0.0"/>
     <dynamics damping="0.02"/>
     <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
   </joint>
-  <transmission name="rh_body_joint_trans">
+  <transmission name="rh_abad_joint_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="rh_body_joint">
+    <joint name="rh_abad_joint">
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="rh_body_motor">
+    <actuator name="rh_abad_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanismReduction>1</mechanismReduction>
+    </actuator>
+  </transmission>
+  <link name="rh_abduction_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.0216"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="3.6e-06" iyz="0.0" izz="3.06e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="/meshes/stl/abduction_link.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="/meshes/stl/abduction_link.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="rh_abduction_link">
+    <mu1 value="1.0"/>
+    <mu2 value="2.0"/>
+    <kp value="1000000"/>
+    <kd value="1.0"/>
+    <material>Gazebo/Red</material>
+  </gazebo>
+  <joint name="rh_hip_joint" type="revolute">
+    <parent link="rh_abduction_link"/>
+    <child link="rh_upper_link"/>
+    <axis xyz="0 1 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+    <dynamics damping="0.02"/>
+    <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
+  </joint>
+  <transmission name="rh_hip_joint_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="rh_hip_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="rh_hip_motor">
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
       <mechanismReduction>1</mechanismReduction>
     </actuator>
   </transmission>
   <link name="rh_upper_link">
     <inertial>
-      <mass value="0.4208"/>
-      <inertia ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 -0.033267"/>
+      <mass value="0.376687"/>
+      <inertia ixx="0.001895275931" ixy="0.0" ixz="0.0" iyy="0.002059293642" iyz="0.0" izz="0.00028213453"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/upper_leg.stl"/>
+        <mesh filename="/meshes/stl/upper_link.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/upper_leg.stl"/>
+        <mesh filename="/meshes/stl/upper_link.stl"/>
       </geometry>
     </collision>
   </link>
@@ -240,9 +372,9 @@
   </gazebo>
   <joint name="rh_knee_joint" type="revolute">
     <parent link="rh_upper_link"/>
-    <child link="rh_under_link"/>
+    <child link="rh_lower_link"/>
     <axis xyz="0 1 0"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.2"/>
     <dynamics damping="0.02"/>
     <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
   </joint>
@@ -256,60 +388,104 @@
       <mechanismReduction>1</mechanismReduction>
     </actuator>
   </transmission>
-  <link name="rh_under_link">
+  <link name="rh_lower_link">
     <inertial>
-      <mass value="0.4208"/>
-      <inertia ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.155989"/>
+      <mass value="0.140882"/>
+      <inertia ixx="0.000664235357" ixy="0.0" ixz="0.0" iyy="0.000664515268" iyz="0.0" izz="1.9650311e-05"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/under_leg.stl"/>
+        <mesh filename="/meshes/stl/lower_link.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/under_leg.stl"/>
+        <mesh filename="/meshes/stl/lower_link.stl"/>
       </geometry>
     </collision>
   </link>
-  <gazebo reference="rh_under_link">
+  <gazebo reference="rh_lower_link">
     <mu1 value="1.0"/>
     <mu2 value="2.0"/>
     <kp value="1000000"/>
     <kd value="1.0"/>
     <material>Gazebo/Red</material>
   </gazebo>
-  <joint name="lh_body_joint" type="revolute">
-    <parent link="body"/>
-    <child link="lh_upper_link"/>
-    <axis xyz="0 1 0"/>
-    <origin rpy="0.0 0.0 0.0" xyz="-0.19 0.11 0.06"/>
+  <joint name="lh_abad_joint" type="revolute">
+    <parent link="base"/>
+    <child link="lh_abduction_link"/>
+    <axis xyz="1 0 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="-0.2 0.11 0.0"/>
     <dynamics damping="0.02"/>
     <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
   </joint>
-  <transmission name="lh_body_joint_trans">
+  <transmission name="lh_abad_joint_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="lh_body_joint">
+    <joint name="lh_abad_joint">
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="lh_body_motor">
+    <actuator name="lh_abad_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanismReduction>1</mechanismReduction>
+    </actuator>
+  </transmission>
+  <link name="lh_abduction_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <mass value="0.0216"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="3.6e-06" iyz="0.0" izz="3.06e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="/meshes/stl/abduction_link.stl"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="/meshes/stl/abduction_link.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="lh_abduction_link">
+    <mu1 value="1.0"/>
+    <mu2 value="2.0"/>
+    <kp value="1000000"/>
+    <kd value="1.0"/>
+    <material>Gazebo/Red</material>
+  </gazebo>
+  <joint name="lh_hip_joint" type="revolute">
+    <parent link="lh_abduction_link"/>
+    <child link="lh_upper_link"/>
+    <axis xyz="0 1 0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+    <dynamics damping="0.02"/>
+    <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
+  </joint>
+  <transmission name="lh_hip_joint_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="lh_hip_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="lh_hip_motor">
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
       <mechanismReduction>1</mechanismReduction>
     </actuator>
   </transmission>
   <link name="lh_upper_link">
     <inertial>
-      <mass value="0.4208"/>
-      <inertia ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991"/>
+      <origin rpy="0 0 0" xyz="0.0 0.0 -0.033267"/>
+      <mass value="0.376687"/>
+      <inertia ixx="0.001895275931" ixy="0.0" ixz="0.0" iyy="0.002059293642" iyz="0.0" izz="0.00028213453"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/upper_leg.stl"/>
+        <mesh filename="/meshes/stl/upper_link.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/upper_leg.stl"/>
+        <mesh filename="/meshes/stl/upper_link.stl"/>
       </geometry>
     </collision>
   </link>
@@ -322,9 +498,9 @@
   </gazebo>
   <joint name="lh_knee_joint" type="revolute">
     <parent link="lh_upper_link"/>
-    <child link="lh_under_link"/>
+    <child link="lh_lower_link"/>
     <axis xyz="0 1 0"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.2"/>
     <dynamics damping="0.02"/>
     <limit effort="8.0" lower="-2.5" upper="2.5" velocity="6.0"/>
   </joint>
@@ -338,23 +514,24 @@
       <mechanismReduction>1</mechanismReduction>
     </actuator>
   </transmission>
-  <link name="lh_under_link">
+  <link name="lh_lower_link">
     <inertial>
-      <mass value="0.4208"/>
-      <inertia ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.155989"/>
+      <mass value="0.140882"/>
+      <inertia ixx="0.000664235357" ixy="0.0" ixz="0.0" iyy="0.000664515268" iyz="0.0" izz="1.9650311e-05"/>
     </inertial>
     <visual>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/under_leg.stl"/>
+        <mesh filename="/meshes/stl/lower_link.stl"/>
       </geometry>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="/home/haruki/prog/LeggedRobot/quadrupedal/meshes/stl/under_leg.stl"/>
+        <mesh filename="/meshes/stl/lower_link.stl"/>
       </geometry>
     </collision>
   </link>
-  <gazebo reference="lh_under_link">
+  <gazebo reference="lh_lower_link">
     <mu1 value="1.0"/>
     <mu2 value="2.0"/>
     <kp value="1000000"/>

@@ -4,9 +4,10 @@
 	<xacro:property name="PI" value="3.14159"/>
 	<xacro:property name="PATH" value=""/>
 
-	<xacro:macro name="link_macro" params="name ixx ixy ixz iyy iyz izz mass filename color">
+	<xacro:macro name="link_macro" params="name inertialOrigin ixx ixy ixz iyy iyz izz mass filename color">
 		<link name="${name}">
 			<inertial>
+				<origin xyz="${inertialOrigin}" rpy="0 0 0"/>
 				<mass value="${mass}"/>
 				<inertia ixx="${ixx}" ixy="${ixy}"  ixz="${ixz}" iyy="${iyy}" iyz="${iyz}" izz="${izz}"/>
 			</inertial>
@@ -30,11 +31,12 @@
 		</gazebo>
 	</xacro:macro>
 
-	<xacro:macro name="joint_macro" params="name xyz rpy parent child type">
+
+	<xacro:macro name="joint_macro" params="name axis xyz rpy parent child type">
 		<joint name="${name}" type="${type}">
 			<parent link="${parent}"/>
 			<child link="${child}"/>
-			<axis xyz="0 1 0"/>
+			<axis xyz="${axis}"/>
 			<origin xyz="${xyz}" rpy="${rpy}"/>
 			<dynamics damping="0.02"/>
 			<limit lower="-2.5" upper="2.5" effort="8.0" velocity="6.0"/>
@@ -58,51 +60,68 @@
 	<!--link name="world"/>
   <joint name="world_joint" type="floating">
 		<parent link="world"/>
-		<child link="body"/> 
+		<child link="base"/> 
     <origin  rpy="0 0 0" xyz="0 0 0"/>
 	</joint-->
 
-	<xacro:link_macro name="body" ixx="0.037696260802" ixy="0.0"  ixz="0.0" iyy="0.079564092870" iyz="0.0" izz="0.073777565481" mass="3.387196" filename="${PATH}/meshes/stl/body.stl" color="Blue"/>
+	<xacro:link_macro name="base" inertialOrigin="0 0 0" ixx="0.017409405067" ixy="0.0"  ixz="0.0" iyy="0.043070296402" iyz="0.0" izz="0.052179256932" mass="2.792" filename="${PATH}/meshes/stl/base.stl" color="Blue"/>
+
 
 
 	<!-- right fore leg -->
-	<xacro:joint_macro name="rf_body_joint" xyz="0.19 -0.11 0.06" rpy="0.0 0.0 ${PI}" parent="body" child="rf_upper_link" type="revolute"/>
-	<xacro:trans_macro name="rf_body_joint_trans" joint_name="rf_body_joint" act_name="rf_body_motor"/>
-	<xacro:link_macro name="rf_upper_link" ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991" mass="0.4208" filename="${PATH}/meshes/stl/upper_leg.stl" color="Red"/>
+	<xacro:joint_macro name="rf_abad_joint" axis="1 0 0" xyz="0.2 -0.11 0.0" rpy="0.0 0.0 0.0" parent="base" child="rf_abduction_link" type="revolute"/>
+	<xacro:trans_macro name="rf_abad_joint_trans" joint_name="rf_abad_joint" act_name="rf_abad_motor"/>
+	<xacro:link_macro name="rf_abduction_link" inertialOrigin="0.0 0.0 0.0" ixx="0.0000009" ixy="0.0" ixz="0.0" iyy="0.0000036" iyz="0.0" izz="0.00000306" mass="0.0216" filename="${PATH}/meshes/stl/abduction_link.stl" color="Red"/>
+
+	<xacro:joint_macro name="rf_hip_joint" axis="0 1 0" xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" parent="rf_abduction_link" child="rf_upper_link" type="revolute"/>
+	<xacro:trans_macro name="rf_hip_joint_trans" joint_name="rf_hip_joint" act_name="rf_hip_motor"/>
+	<xacro:link_macro name="rf_upper_link" inertialOrigin="0.0 0.0 -0.033267" ixx="0.001895275931" ixy="0.0" ixz="0.0" iyy="0.002059293642" iyz="0.0" izz="0.000282134530" mass="0.376687" filename="${PATH}/meshes/stl/upper_link.stl" color="Red"/>
 	
-	<xacro:joint_macro name="rf_knee_joint" xyz="0.0 0.0 -0.18" rpy="0.0 0.0 0.0" parent="rf_upper_link" child="rf_under_link" type="revolute"/>
+	<xacro:joint_macro name="rf_knee_joint" axis="0 1 0" xyz="0.0 0.0 -0.2" rpy="0.0 0.0 0.0" parent="rf_upper_link" child="rf_lower_link" type="revolute"/>
 	<xacro:trans_macro name="rf_knee_joint_trans" joint_name="rf_knee_joint" act_name="rf_knee_motor"/>
-	<xacro:link_macro name="rf_under_link" ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991" mass="0.4208" filename="${PATH}/meshes/stl/under_leg.stl" color="Red"/>
+	<xacro:link_macro name="rf_lower_link" inertialOrigin="0 0 -0.155989" ixx="0.000664235357" ixy="0.0" ixz="0.0" iyy="0.000664515268" iyz="0.0" izz="0.000019650311" mass="0.140882" filename="${PATH}/meshes/stl/lower_link.stl" color="Red"/>
 
 
 
 	<!-- left fore leg -->
-	<xacro:joint_macro name="lf_body_joint" xyz="0.19 0.11 0.06" rpy="0.0 0.0 0.0" parent="body" child="lf_upper_link" type="revolute"/>
-	<xacro:trans_macro name="lf_body_joint_trans" joint_name="lf_body_joint" act_name="lf_body_motor"/>
-	<xacro:link_macro name="lf_upper_link" ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991" mass="0.4208" filename="${PATH}/meshes/stl/upper_leg.stl" color="Red"/>
+	<xacro:joint_macro name="lf_abad_joint" axis="1 0 0" xyz="0.2 0.11 0.0" rpy="0.0 0.0 0.0" parent="base" child="lf_abduction_link" type="revolute"/>
+	<xacro:trans_macro name="lf_abad_joint_trans" joint_name="lf_abad_joint" act_name="lf_abad_motor"/>
+	<xacro:link_macro name="lf_abduction_link" inertialOrigin="0.0 0.0 0.0" ixx="0.0000009" ixy="0.0" ixz="0.0" iyy="0.0000036" iyz="0.0" izz="0.00000306" mass="0.0216" filename="${PATH}/meshes/stl/abduction_link.stl" color="Red"/>
 
-	<xacro:joint_macro name="lf_knee_joint" xyz="0.0 0.0 -0.18" rpy="0.0 0.0 0.0" parent="lf_upper_link" child="lf_under_link" type="revolute"/>
+	<xacro:joint_macro name="lf_hip_joint" axis="0 1 0" xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" parent="lf_abduction_link" child="lf_upper_link" type="revolute"/>
+	<xacro:trans_macro name="lf_hip_joint_trans" joint_name="lf_hip_joint" act_name="lf_hip_motor"/>
+	<xacro:link_macro name="lf_upper_link" inertialOrigin="0.0 0.0 -0.033267" ixx="0.001895275931" ixy="0.0" ixz="0.0" iyy="0.002059293642" iyz="0.0" izz="0.000282134530" mass="0.376687" filename="${PATH}/meshes/stl/upper_link.stl" color="Red"/>
+	
+	<xacro:joint_macro name="lf_knee_joint" axis="0 1 0" xyz="0.0 0.0 -0.2" rpy="0.0 0.0 0.0" parent="lf_upper_link" child="lf_lower_link" type="revolute"/>
 	<xacro:trans_macro name="lf_knee_joint_trans" joint_name="lf_knee_joint" act_name="lf_knee_motor"/>
-	<xacro:link_macro name="lf_under_link" ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991" mass="0.4208" filename="${PATH}/meshes/stl/under_leg.stl" color="Red"/>
+	<xacro:link_macro name="lf_lower_link" inertialOrigin="0 0 -0.155989" ixx="0.000664235357" ixy="0.0" ixz="0.0" iyy="0.000664515268" iyz="0.0" izz="0.000019650311" mass="0.140882" filename="${PATH}/meshes/stl/lower_link.stl" color="Red"/>
 
 
 	<!-- right hind leg -->
-	<xacro:joint_macro name="rh_body_joint" xyz="-0.19 -0.11 0.06" rpy="0.0 0.0 ${PI}" parent="body" child="rh_upper_link" type="revolute"/>
-	<xacro:trans_macro name="rh_body_joint_trans" joint_name="rh_body_joint" act_name="rh_body_motor"/>
-	<xacro:link_macro name="rh_upper_link" ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991" mass="0.4208" filename="${PATH}/meshes/stl/upper_leg.stl" color="Red"/>
+	<xacro:joint_macro name="rh_abad_joint" axis="1 0 0" xyz="-0.2 -0.11 0.0" rpy="0.0 0.0 0.0" parent="base" child="rh_abduction_link" type="revolute"/>
+	<xacro:trans_macro name="rh_abad_joint_trans" joint_name="rh_abad_joint" act_name="rh_abad_motor"/>
+	<xacro:link_macro name="rh_abduction_link" inertialOrigin="0.0 0.0 0.0" ixx="0.0000009" ixy="0.0" ixz="0.0" iyy="0.0000036" iyz="0.0" izz="0.00000306" mass="0.0216" filename="${PATH}/meshes/stl/abduction_link.stl" color="Red"/>
 
-	<xacro:joint_macro name="rh_knee_joint" xyz="0.0 0.0 -0.18" rpy="0.0 0.0 0.0" parent="rh_upper_link" child="rh_under_link" type="revolute"/>
+	<xacro:joint_macro name="rh_hip_joint" axis="0 1 0" xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" parent="rh_abduction_link" child="rh_upper_link" type="revolute"/>
+	<xacro:trans_macro name="rh_hip_joint_trans" joint_name="rh_hip_joint" act_name="rh_hip_motor"/>
+	<xacro:link_macro name="rh_upper_link" inertialOrigin="0.0 0.0 -0.033267" ixx="0.001895275931" ixy="0.0" ixz="0.0" iyy="0.002059293642" iyz="0.0" izz="0.000282134530" mass="0.376687" filename="${PATH}/meshes/stl/upper_link.stl" color="Red"/>
+	
+	<xacro:joint_macro name="rh_knee_joint" axis="0 1 0" xyz="0.0 0.0 -0.2" rpy="0.0 0.0 0.0" parent="rh_upper_link" child="rh_lower_link" type="revolute"/>
 	<xacro:trans_macro name="rh_knee_joint_trans" joint_name="rh_knee_joint" act_name="rh_knee_motor"/>
-	<xacro:link_macro name="rh_under_link" ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991" mass="0.4208" filename="${PATH}/meshes/stl/under_leg.stl" color="Red"/>
+	<xacro:link_macro name="rh_lower_link" inertialOrigin="0 0 -0.155989" ixx="0.000664235357" ixy="0.0" ixz="0.0" iyy="0.000664515268" iyz="0.0" izz="0.000019650311" mass="0.140882" filename="${PATH}/meshes/stl/lower_link.stl" color="Red"/>
 	
 	<!-- left hind leg -->
-	<xacro:joint_macro name="lh_body_joint" xyz="-0.19 0.11 0.06" rpy="0.0 0.0 0.0" parent="body" child="lh_upper_link" type="revolute"/>
-	<xacro:trans_macro name="lh_body_joint_trans" joint_name="lh_body_joint" act_name="lh_body_motor"/>
-	<xacro:link_macro name="lh_upper_link" ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991" mass="0.4208" filename="${PATH}/meshes/stl/upper_leg.stl" color="Red"/>
+	<xacro:joint_macro name="lh_abad_joint" axis="1 0 0" xyz="-0.2 0.11 0.0" rpy="0.0 0.0 0.0" parent="base" child="lh_abduction_link" type="revolute"/>
+	<xacro:trans_macro name="lh_abad_joint_trans" joint_name="lh_abad_joint" act_name="lh_abad_motor"/>
+	<xacro:link_macro name="lh_abduction_link" inertialOrigin="0.0 0.0 0.0" ixx="0.0000009" ixy="0.0" ixz="0.0" iyy="0.0000036" iyz="0.0" izz="0.00000306" mass="0.0216" filename="${PATH}/meshes/stl/abduction_link.stl" color="Red"/>
 
-	<xacro:joint_macro name="lh_knee_joint" xyz="0.0 0.0 -0.18" rpy="0.0 0.0 0.0" parent="lh_upper_link" child="lh_under_link" type="revolute"/>
+	<xacro:joint_macro name="lh_hip_joint" axis="0 1 0" xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" parent="lh_abduction_link" child="lh_upper_link" type="revolute"/>
+	<xacro:trans_macro name="lh_hip_joint_trans" joint_name="lh_hip_joint" act_name="lh_hip_motor"/>
+	<xacro:link_macro name="lh_upper_link" inertialOrigin="0.0 0.0 -0.033267" ixx="0.001895275931" ixy="0.0" ixz="0.0" iyy="0.002059293642" iyz="0.0" izz="0.000282134530" mass="0.376687" filename="${PATH}/meshes/stl/upper_link.stl" color="Red"/>
+	
+	<xacro:joint_macro name="lh_knee_joint" axis="0 1 0" xyz="0.0 0.0 -0.2" rpy="0.0 0.0 0.0" parent="lh_upper_link" child="lh_lower_link" type="revolute"/>
 	<xacro:trans_macro name="lh_knee_joint_trans" joint_name="lh_knee_joint" act_name="lh_knee_motor"/>
-	<xacro:link_macro name="lh_under_link" ixx="0.002538913384" ixy="0.0" ixz="0.0" iyy="0.002672551616" iyz="0.000139675629" izz="0.000251042991" mass="0.4208" filename="${PATH}/meshes/stl/under_leg.stl" color="Red"/>
+	<xacro:link_macro name="lh_lower_link" inertialOrigin="0 0 -0.155989" ixx="0.000664235357" ixy="0.0" ixz="0.0" iyy="0.000664515268" iyz="0.0" izz="0.000019650311" mass="0.140882" filename="${PATH}/meshes/stl/lower_link.stl" color="Red"/>
 
 </robot>
 
