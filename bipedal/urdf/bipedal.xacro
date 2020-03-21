@@ -1,0 +1,110 @@
+<?xml version="1.0"?> 
+<robot name="quadrupedal_robot" xmlns:xacro="https://ros.org/wiki/xacro"> 
+	<xacro:macro name="link_macro" params="name inertialOrigin ixx ixy ixz iyy iyz izz mass filename color">
+		<link name="${name}">
+			<inertial>
+				<mass value="${mass}"/>
+				<origin xyz="${inertialOrigin}" rpy="0 0 0"/>
+				<inertia ixx="${ixx}" ixy="${ixy}"  ixz="${ixz}" iyy="${iyy}" iyz="${iyz}" izz="${izz}"/>
+			</inertial>
+			<visual>
+				<geometry>
+					<mesh filename="${filename}"/>
+				</geometry>
+			</visual>
+			<collision>
+				<geometry>
+					<mesh filename="${filename}"/>
+				</geometry>
+			</collision>
+		</link>
+	</xacro:macro>
+
+
+	<xacro:macro name="joint_macro" params="name axis xyz parent child type">
+		<joint name="${name}" type="${type}">
+			<parent link="${parent}"/>
+			<child link="${child}"/>
+			<axis xyz="${axis}"/>
+			<origin xyz="${xyz}" rpy="0 0 0"/>
+			<dynamics damping="0.05"/>
+			<limit lower="-2.5" upper="2.5" effort="8.0" velocity="6.0"/>
+		</joint>
+	</xacro:macro>
+
+
+	<xacro:macro name="trans_macro" params="name joint_name act_name">
+		<transmission name="${name}">
+			<type>transmission_interface/SimpleTransmission</type>
+			<joint name="${joint_name}">
+				<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+			</joint>
+			<actuator name="${act_name}">
+				<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+				<mechanismReduction>1</mechanismReduction>
+			</actuator>
+		</transmission>
+	</xacro:macro>
+	
+	<!--link name="world"/>
+
+	<joint name="world_joint" type="floating">
+		<parent link="world"/>
+		<child link="body"/> 
+		<origin  rpy="0 0 0" xyz="0 0 0"/>
+	</joint -->
+
+	<xacro:link_macro name="body" inertialOrigin="0 0 0" ixx="0.067653450" ixy="0.0"  ixz="0.0" iyy="0.053440875" iyz="0.0" izz="0.017235495" mass="4.546" filename="meshes/stl/base.stl" color="Blue"/>
+
+	<!-- right leg -->
+	<xacro:joint_macro name="r_yaw_hipJoint" axis="0 0 1" xyz="0.0 -0.065 -0.175" parent="body" child="r_yaw_hipLink" type="revolute"/>
+	<xacro:trans_macro name="r_yaw_hipTrans" joint_name="r_yaw_hipJoint" act_name="r_yaw_hipMotor"/>
+	<xacro:link_macro name="r_yaw_hipLink" inertialOrigin="0 0 0" ixx="0.000039598421" ixy="0.0" ixz="0.0" iyy="0.000039598427" iyz="0.0" izz="0.000050357027" mass="0.108149" filename="meshes/stl/hip_Zaxis_link.stl" color="Red"/>
+	<xacro:joint_macro name="r_roll_hipJoint" axis="1 0 0" xyz="0.0 0.0 0.0" parent="r_yaw_hipLink" child="r_roll_hipLink" type="revolute"/>
+	<xacro:trans_macro name="r_roll_hipTrans" joint_name="r_roll_hipJoint" act_name="r_roll_hipMotor"/>
+	<xacro:link_macro name="r_roll_hipLink" inertialOrigin="0 0 0" ixx="0.000050357027" ixy="0.0" ixz="0.0" iyy="0.000039598427" iyz="0.0" izz="0.000039598421" mass="0.108149" filename="meshes/stl/hip_Xaxis_link.stl" color="Red"/>
+
+	<xacro:joint_macro name="r_pitch_hipJoint" axis="0 1 0" xyz="0.0 0.0 0.0" parent="r_roll_hipLink" child="r_thighLink" type="revolute"/>
+	<xacro:trans_macro name="r_pitch_hipTrans" joint_name="r_pitch_hipJoint" act_name="r_pitch_hipMotor"/>
+	<xacro:link_macro name="r_thighLink" inertialOrigin="0 0 -0.09" ixx="0.000525492139" ixy="0.0" ixz="0.0" iyy="0.000525518548" iyz="0.0" izz="0.000024541119" mass="0.12805" filename="meshes/stl/thigh_link.stl" color="Red"/>
+
+	<xacro:joint_macro name="r_kneeJoint" axis="0 1 0" xyz="0.0 0.0 -0.18" parent="r_thighLink" child="r_kneeLink" type="revolute"/>
+	<xacro:trans_macro name="r_kneeTrans" joint_name="r_kneeJoint" act_name="r_kneeMotor"/>
+	<xacro:link_macro name="r_kneeLink" inertialOrigin="0 0 -0.09" ixx="0.000345322965" ixy="0.0" ixz="0.0" iyy="0.000345322962" iyz="0.0" izz="0.000022817471" mass="0.123672" filename="meshes/stl/knee_link.stl" color="Green"/>
+
+	<xacro:joint_macro name="r_pitch_ankleJoint" axis="0 1 0" xyz="0.0 0.0 -0.18" parent="r_kneeLink" child="r_ankleLink" type="revolute"/>
+	<xacro:trans_macro name="r_pitch_ankleTrans" joint_name="r_pitch_ankleJoint" act_name="r_pitch_ankleMotor"/>
+	<xacro:link_macro name="r_ankleLink" inertialOrigin="0 0 0.01" ixx="0.000020250" ixy="0.0" ixz="0.0" iyy="0.000020250" iyz="0.0" izz="0.000014580" mass="0.0972" filename="meshes/stl/ankle_link.stl" color="Blue"/>
+
+	<xacro:joint_macro name="r_roll_ankleJoint" axis="1 0 0" xyz="0.0 0.0 0.0" parent="r_ankleLink" child="r_tipLink" type="revolute"/>
+	<xacro:trans_macro name="r_roll_ankleTrans" joint_name="r_roll_ankleJoint" act_name="r_roll_ankleMotor"/>
+	<xacro:link_macro name="r_tipLink" inertialOrigin="0.022466 0.0 -0.012173" ixx="0.000026893362" ixy="0.0" ixz="0.000045591183" iyy="0.000062269795" iyz="0.0" izz="0.000081206377" mass="0.093204" filename="meshes/stl/tip_link.stl" color="Blue"/>
+
+	<!-- left leg -->
+
+	<xacro:joint_macro name="l_yaw_hipJoint" axis="0 0 1" xyz="0.0 0.065 -0.175" parent="body" child="l_yaw_hipLink" type="revolute"/>
+	<xacro:trans_macro name="l_yaw_hipTrans" joint_name="l_yaw_hipJoint" act_name="l_yaw_hipMotor"/>
+	<xacro:link_macro name="l_yaw_hipLink" inertialOrigin="0 0 0" ixx="0.000039598421" ixy="0.0" ixz="0.0" iyy="0.000039598427" iyz="0.0" izz="0.000050357027" mass="0.108149" filename="meshes/stl/hip_Zaxis_link.stl" color="Red"/>
+	<xacro:joint_macro name="l_roll_hipJoint" axis="1 0 0" xyz="0.0 0.0 0.0" parent="l_yaw_hipLink" child="l_roll_hipLink" type="revolute"/>
+	<xacro:trans_macro name="l_roll_hipTrans" joint_name="l_roll_hipJoint" act_name="l_roll_hipMotor"/>
+	<xacro:link_macro name="l_roll_hipLink" inertialOrigin="0 0 0" ixx="0.000050357027" ixy="0.0" ixz="0.0" iyy="0.000039598427" iyz="0.0" izz="0.000039598421" mass="0.108149" filename="meshes/stl/hip_Xaxis_link.stl" color="Red"/>
+
+	<xacro:joint_macro name="l_pitch_hipJoint" axis="0 1 0" xyz="0.0 0.0 0.0" parent="l_roll_hipLink" child="l_thighLink" type="revolute"/>
+	<xacro:trans_macro name="l_pitch_hipTrans" joint_name="l_pitch_hipJoint" act_name="l_pitch_hipMotor"/>
+	<xacro:link_macro name="l_thighLink" inertialOrigin="0 0 -0.09" ixx="0.000525492139" ixy="0.0" ixz="0.0" iyy="0.000525518548" iyz="0.0" izz="0.000024541119" mass="0.12805" filename="meshes/stl/thigh_link.stl" color="Red"/>
+
+	<xacro:joint_macro name="l_kneeJoint" axis="0 1 0" xyz="0.0 0.0 -0.18" parent="l_thighLink" child="l_kneeLink" type="revolute"/>
+	<xacro:trans_macro name="l_kneeTrans" joint_name="l_kneeJoint" act_name="l_kneeMotor"/>
+	<xacro:link_macro name="l_kneeLink" inertialOrigin="0 0 -0.09" ixx="0.000345322965" ixy="0.0" ixz="0.0" iyy="0.000345322962" iyz="0.0" izz="0.000022817471" mass="0.123672" filename="meshes/stl/knee_link.stl" color="Green"/>
+
+	<xacro:joint_macro name="l_pitch_ankleJoint" axis="0 1 0" xyz="0.0 0.0 -0.18" parent="l_kneeLink" child="l_ankleLink" type="revolute"/>
+	<xacro:trans_macro name="l_pitch_ankleTrans" joint_name="l_pitch_ankleJoint" act_name="l_pitch_ankleMotor"/>
+	<xacro:link_macro name="l_ankleLink" inertialOrigin="0 0 0.01" ixx="0.000020250" ixy="0.0" ixz="0.0" iyy="0.000020250" iyz="0.0" izz="0.000014580" mass="0.0972" filename="meshes/stl/ankle_link.stl" color="Blue"/>
+
+	<xacro:joint_macro name="l_roll_ankleJoint" axis="1 0 0" xyz="0.0 0.0 0.0" parent="l_ankleLink" child="l_tipLink" type="revolute"/>
+	<xacro:trans_macro name="l_roll_ankleTrans" joint_name="l_roll_ankleJoint" act_name="l_roll_ankleMotor"/>
+	<xacro:link_macro name="l_tipLink" inertialOrigin="0.022466 0.0 -0.012173" ixx="0.000026893362" ixy="0.0" ixz="0.000045591183" iyy="0.000062269795" iyz="0.0" izz="0.000081206377" mass="0.093204" filename="meshes/stl/tip_link.stl" color="Blue"/>
+
+
+
+</robot>
