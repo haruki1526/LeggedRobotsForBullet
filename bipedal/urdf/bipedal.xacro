@@ -78,7 +78,7 @@
 
 	<xacro:joint_macro name="r_roll_ankleJoint" axis="1 0 0" xyz="0.0 0.0 0.0" parent="r_ankleLink" child="r_tipLink" type="revolute"/>
 	<xacro:trans_macro name="r_roll_ankleTrans" joint_name="r_roll_ankleJoint" act_name="r_roll_ankleMotor"/>
-	<xacro:link_macro name="r_tipLink" inertialOrigin="0.022466 0.0 -0.012173" ixx="0.000026893362" ixy="0.0" ixz="0.000045591183" iyy="0.000062269795" iyz="0.0" izz="0.000081206377" mass="0.093204" filename="meshes/stl/tip_link.stl" color="Blue"/>
+	<xacro:link_macro name="r_tipLink" inertialOrigin="0.002639 0.0 -0.011265" ixx="0.000081336818" ixy="0.0" ixz="0.000007800852" iyy="0.000185289302" iyz="0.0" izz="0.000251133962" mass="0.139622" filename="meshes/stl/tip_link.stl" color="Blue"/>
 
 	<!-- left leg -->
 
@@ -103,7 +103,7 @@
 
 	<xacro:joint_macro name="l_roll_ankleJoint" axis="1 0 0" xyz="0.0 0.0 0.0" parent="l_ankleLink" child="l_tipLink" type="revolute"/>
 	<xacro:trans_macro name="l_roll_ankleTrans" joint_name="l_roll_ankleJoint" act_name="l_roll_ankleMotor"/>
-	<xacro:link_macro name="l_tipLink" inertialOrigin="0.022466 0.0 -0.012173" ixx="0.000026893362" ixy="0.0" ixz="0.000045591183" iyy="0.000062269795" iyz="0.0" izz="0.000081206377" mass="0.093204" filename="meshes/stl/tip_link.stl" color="Blue"/>
+	<xacro:link_macro name="l_tipLink" inertialOrigin="0.002639 0.0 -0.011265" ixx="0.000081336818" ixy="0.0" ixz="0.000007800852" iyy="0.000185289302" iyz="0.0" izz="0.000251133962" mass="0.139622" filename="meshes/stl/tip_link.stl" color="Blue"/>
 
 
 
