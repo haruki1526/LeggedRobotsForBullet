@@ -21,8 +21,8 @@ if __name__ == "__main__":
     posR = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     startJointPosR = [0.0, 0.0, -0.6,  2*0.6, -0.6, 0.0]
     startJointPosL = [0.0, 0.0, -0.6,  2*0.6, -0.6, 0.0]
-    bipedal.setLeftLegJointPositions(startPosL)
-    bipedal.setRightLegJointPositions(startPosR)
+    bipedal.setLeftLegJointPositions(startJointPosL)
+    bipedal.setRightLegJointPositions(startJointPosR)
     bipedal.oneStep()
     time.sleep(2)
     while(1):
