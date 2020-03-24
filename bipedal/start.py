@@ -19,10 +19,10 @@ if __name__ == "__main__":
     tarPosL = [0.0, 0.065, -0.35]
     targetRPY = [0.0, 0.0, 0.0]
     posR = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    firstPosR = [0.0, 0.0, -0.6,  2*0.6, -0.6, 0.0]
-    firstPosL = [0.0, 0.0, -0.6,  2*0.6, -0.6, 0.0]
-    bipedal.setLeftLegJointPositions(firstPosL)
-    bipedal.setRightLegJointPositions(firstPosR)
+    startJointPosR = [0.0, 0.0, -0.6,  2*0.6, -0.6, 0.0]
+    startJointPosL = [0.0, 0.0, -0.6,  2*0.6, -0.6, 0.0]
+    bipedal.setLeftLegJointPositions(startPosL)
+    bipedal.setRightLegJointPositions(startPosR)
     bipedal.oneStep()
     time.sleep(2)
     while(1):
@@ -30,9 +30,9 @@ if __name__ == "__main__":
         PosL = bipedal.inverseKinematics(tarPosL, targetRPY, bipedal.L)
         bipedal.setLeftLegJointPositions(PosL)
         bipedal.setRightLegJointPositions(PosR)
-        R, p = bipedal.forwardKinematics(jointPositions=bipedal.getJointPositions(bipedal.R), leg=bipedal.R)
-        omega = tf.getRollPitchYawFromR(R)
-        print("R=",omega)
+        #R, p = bipedal.forwardKinematics(jointPositions=bipedal.getJointPositions(bipedal.R), leg=bipedal.R)
+        #omega = tf.getRollPitchYawFromR(R)
+        #print("omega=",omega)
 
 
         bipedal.oneStep()
