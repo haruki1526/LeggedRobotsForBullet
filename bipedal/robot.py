@@ -186,14 +186,21 @@ class Bipedal(Robot):
 
         return jointPositions
 
-    def IK(self):
-        currentR = self.getJointPositions(self.R)
-        currentL = self.getJointPositions(self.L)
-        current = currentR.append(currentL)
-        #posr = pb.calculateInverseKinematics(self._robotId, 5, [0.0, -0.065, -0.3], targetOrientation=[0,0,0,1], currentPositions=current)
-        posr = pb.calculateInverseKinematics(self._robotId, 5, [0.0, -0.065, -0.3], currentPositions=current)
-        #self.setRightLegJointPositions(posr[0:6])
-        #posl = pb.calculateInverseKinematics(self._robotId, 11, [0.0, 0.065, -0.3], targetOrientation=[0,0,0,1], currentPositions=current)
-        posl = pb.calculateInverseKinematics(self._robotId, 11, [0.0, 0.065, -0.3], currentPositions=current)
-        #self.setLeftLegJointPositions(posl[6:12])
-        return 0
+    def positionInitialize(self, startCOMheight=0.5, initialLegRPY=[0,0,0], initializeTime=1.0, initialJointPosRL=[0.0,0.0,-0.44,0.88,-0.44,0.0]):
+        initializeStep = np.arange(0,initializeTime/self._timeStep,1)
+        initialLegPosR = [0,self.R[1],-startCOMheight]
+        initialLegPosL = [0,self.L[1],-startCOMheight]
+
+        for i in initializeStep: 
+            self.setLeftLegJointPositions(initialJointPosRL)
+            self.setRightLegJointPositions(initialJointPosRL)
+            self.resetRobotPositionAndOrientation(position=[0,0,startCOMheight], orientation=[0,0,0,1])
+            self.oneStep()
+        
+        for i in initializeStep:
+            PosR = self.inverseKinematics(initialLegPosR, initialLegRPY, self.R)
+            PosL = self.inverseKinematics(initialLegPosL, initialLegRPY, self.L)
+            self.setRightLegJointPositions(PosR)
+            self.setLeftLegJointPositions(PosL)
+            self.resetRobotPositionAndOrientation(position=[0,0,startCOMheight], orientation=[0,0,0,1])
+            self.oneStep()
