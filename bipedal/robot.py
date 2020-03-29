@@ -4,6 +4,7 @@ from motor import Motor
 import numpy as np
 import time
 import tform as tf
+import scipy.linalg as la
 
 class Robot:
     def __init__(self, robotPATH, startPosition, startOrientation, maxForce, controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
@@ -152,7 +153,7 @@ class Bipedal(Robot):
         domega = omega_ref - omega
         dp_domega = np.append(dp,domega)
 
-        dq = self._lambda * np.linalg.inv(self.jacobian(q, leg)).dot(dp_domega)
+        dq = self._lambda * la.inv(self.jacobian(q, leg)).dot(dp_domega)
 
 
         return q+dq
@@ -204,3 +205,6 @@ class Bipedal(Robot):
             self.setLeftLegJointPositions(PosL)
             self.resetRobotPositionAndOrientation(position=[0,0,startCOMheight], orientation=[0,0,0,1])
             self.oneStep()
+    
+    def disconnect(self):
+        pb.disconnect()
