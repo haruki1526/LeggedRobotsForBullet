@@ -41,7 +41,7 @@ class Robot:
     def oneStep(self):
         
         robotPosition, _ = pb.getBasePositionAndOrientation(self._robotId)
-        pb.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=130, cameraPitch=-30, cameraTargetPosition=robotPosition)
+        pb.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=90, cameraPitch=-10, cameraTargetPosition=robotPosition)
         pb.stepSimulation()
         time.sleep(self._timeStep)
 
@@ -51,10 +51,10 @@ class Bipedal(Robot):
     def __init__(self, startPosition=[0,0,0.55], startOrientation=[0,0,0], maxForce=9.0, controlMode=pb.POSITION_CONTROL, robotPATH="urdf/bipedal.urdf", planePATH="plane.urdf"):
         super().__init__(robotPATH=robotPATH, startPosition=startPosition, startOrientation=startOrientation, maxForce=maxForce, controlMode=controlMode, planePATH=planePATH)
 
-        self._lambda = 1.0
+        self._lambda = 2.0
         self._L1 = 0.18
         self._L2 = 0.18
-        self.R = np.array([0,-0.065,-0.175])
+        self.R = np.array([0,-0.065,-0.175]) #from body coordinate to first joint
         self.L = np.array([0,0.065,-0.175])
         self.LEG_DOF = 6
 
@@ -72,10 +72,10 @@ class Bipedal(Robot):
         self.LPitchAnkleJointMotor = Motor(self._robotId, 10, mode=controlMode)
         self.LRollAnkleJointMotor = Motor(self._robotId, 11, mode=controlMode)
 
-        self._jointIdListL = [self.RYawHipJointMotor.Id, self.RRollHipJointMotor.Id, self.RPitchHipJointMotor.Id, 
+        self._jointIdListR = [self.RYawHipJointMotor.Id, self.RRollHipJointMotor.Id, self.RPitchHipJointMotor.Id, 
                             self.RKneeJointMotor.Id, self.RPitchAnkleJointMotor.Id, self.RRollAnkleJointMotor.Id]
 
-        self._jointIdListR = [self.LYawHipJointMotor.Id, self.LRollHipJointMotor.Id, self.LPitchHipJointMotor.Id, 
+        self._jointIdListL = [self.LYawHipJointMotor.Id, self.LRollHipJointMotor.Id, self.LPitchHipJointMotor.Id, 
                             self.LKneeJointMotor.Id, self.LPitchAnkleJointMotor.Id, self.LRollAnkleJointMotor.Id]
         self._maxForceListForLeg = [maxForce for i in range(self.LEG_DOF)]
 
@@ -173,11 +173,11 @@ class Bipedal(Robot):
         return J
 
     def getJointPositions(self, leg):
-        if np.sum(leg == self.R):
+        if np.sum(leg == self.R) == len(leg):
             jointStates = pb.getJointStates(self._robotId, jointIndices=self._jointIdListR)
             jointPositions = [jointStates[i][0] for i in range(len(jointStates))]
 
-        elif np.sum(leg == self.L):
+        elif np.sum(leg == self.L) == len(leg):
             jointStates = pb.getJointStates(self._robotId, jointIndices=self._jointIdListL)
             jointPositions = [jointStates[i][0] for i in range(len(jointStates))]
         
