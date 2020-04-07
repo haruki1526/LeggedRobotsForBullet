@@ -20,7 +20,7 @@ class Robot:
         self.maxForce = maxForce
         self._maxForceList = [maxForce for i in range(self.numJoint)]
 
-        self._timeStep = 1./240.
+        self._timeStep = 1./240. 
 
 
     def getEuler(self):
@@ -41,21 +41,21 @@ class Robot:
     def oneStep(self):
         
         robotPosition, _ = pb.getBasePositionAndOrientation(self._robotId)
-        pb.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=90, cameraPitch=-10, cameraTargetPosition=robotPosition)
+        pb.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=135, cameraPitch=-10, cameraTargetPosition=robotPosition)
         pb.stepSimulation()
         time.sleep(self._timeStep)
 
 
 class Bipedal(Robot):
 
-    def __init__(self, startPosition=[0,0,0.55], startOrientation=[0,0,0], maxForce=9.0, controlMode=pb.POSITION_CONTROL, robotPATH="urdf/bipedal.urdf", planePATH="plane.urdf"):
+    def __init__(self, startPosition=[0,0,0.55], startOrientation=[0,0,0], CoMposition_b=np.array([0.,0.,-0.02]),maxForce=9.0, controlMode=pb.POSITION_CONTROL, robotPATH="urdf/bipedal.urdf", planePATH="plane.urdf"):
         super().__init__(robotPATH=robotPATH, startPosition=startPosition, startOrientation=startOrientation, maxForce=maxForce, controlMode=controlMode, planePATH=planePATH)
 
-        self._lambda = 2.0
+        self._lambda = 1.0
         self._L1 = 0.18
         self._L2 = 0.18
-        self.R = np.array([0,-0.065,-0.175]) #from body coordinate to first joint
-        self.L = np.array([0,0.065,-0.175])
+        self.R = np.array([0,-0.065,-0.175]) - CoMposition_b #from CoM to hipyaw joint
+        self.L = np.array([0,0.065,-0.175]) - CoMposition_b
         self.LEG_DOF = 6
 
         self.RYawHipJointMotor = Motor(self._robotId, 0, mode=controlMode)
@@ -182,12 +182,11 @@ class Bipedal(Robot):
             jointPositions = [jointStates[i][0] for i in range(len(jointStates))]
         
         else:
-            print("invalid parameter")
-            return -1
+            raise ValueError("invalid parameter")
 
         return jointPositions
 
-    def positionInitialize(self, startCOMheight=0.5, initialLegRPY=[0,0,0], initializeTime=1.0, initialJointPosRL=[0.0,0.0,-0.44,0.88,-0.44,0.0]):
+    def positionInitialize(self, startCOMheight=0.45, initialLegRPY=[0,0,0], initializeTime=1.0, initialJointPosRL=[0.0,0.0,-0.44,0.88,-0.44,0.0]):
         initializeStep = np.arange(0,initializeTime/self._timeStep,1)
         initialLegPosR = [0,self.R[1],-startCOMheight]
         initialLegPosL = [0,self.L[1],-startCOMheight]
@@ -195,7 +194,7 @@ class Bipedal(Robot):
         for i in initializeStep: 
             self.setLeftLegJointPositions(initialJointPosRL)
             self.setRightLegJointPositions(initialJointPosRL)
-            self.resetRobotPositionAndOrientation(position=[0,0,startCOMheight], orientation=[0,0,0,1])
+            self.resetRobotPositionAndOrientation(position=[0,0,startCOMheight+0.02], orientation=[0,0,0,1])
             self.oneStep()
         
         for i in initializeStep:
@@ -203,7 +202,7 @@ class Bipedal(Robot):
             PosL = self.inverseKinematics(initialLegPosL, initialLegRPY, self.L)
             self.setRightLegJointPositions(PosR)
             self.setLeftLegJointPositions(PosL)
-            self.resetRobotPositionAndOrientation(position=[0,0,startCOMheight], orientation=[0,0,0,1])
+            #self.resetRobotPositionAndOrientation(position=[0,0,startCOMheight], orientation=[0,0,0,1])
             self.oneStep()
     
     def disconnect(self):

@@ -223,9 +223,9 @@
   </transmission>
   <link name="r_tipLink">
     <inertial>
-      <mass value="0.093204"/>
-      <origin rpy="0 0 0" xyz="0.022466 0.0 -0.012173"/>
-      <inertia ixx="2.6893362e-05" ixy="0.0" ixz="4.5591183e-05" iyy="6.2269795e-05" iyz="0.0" izz="8.1206377e-05"/>
+      <mass value="0.139622"/>
+      <origin rpy="0 0 0" xyz="0.002639 0.0 -0.011265"/>
+      <inertia ixx="8.1336818e-05" ixy="0.0" ixz="7.800852e-06" iyy="0.000185289302" iyz="0.0" izz="0.000251133962"/>
     </inertial>
     <visual>
       <geometry>
@@ -434,9 +434,9 @@
   </transmission>
   <link name="l_tipLink">
     <inertial>
-      <mass value="0.093204"/>
-      <origin rpy="0 0 0" xyz="0.022466 0.0 -0.012173"/>
-      <inertia ixx="2.6893362e-05" ixy="0.0" ixz="4.5591183e-05" iyy="6.2269795e-05" iyz="0.0" izz="8.1206377e-05"/>
+      <mass value="0.139622"/>
+      <origin rpy="0 0 0" xyz="0.002639 0.0 -0.011265"/>
+      <inertia ixx="8.1336818e-05" ixy="0.0" ixz="7.800852e-06" iyy="0.000185289302" iyz="0.0" izz="0.000251133962"/>
     </inertial>
     <visual>
       <geometry>
