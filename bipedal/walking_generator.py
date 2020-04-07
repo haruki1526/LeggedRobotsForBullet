@@ -5,7 +5,7 @@ import control
 import swing_trajectory as st
 
 class PreviewControl:
-    def __init__(self, dt=1./240., Tsup_time=0.5, Tdl_time=0.1, CoMheight=0.45, g=9.8, previewStepNum=240, stride=0.1, initialTargetZMP=np.array([0.,0.]), initialFootPrint=np.array([[[0.,0.065],[0.,-0.065]]]), R=np.matrix([1.]), Q=np.matrix([[5000,0,0,0],
+    def __init__(self, dt=1./240., Tsup_time=0.5, Tdl_time=0.1, CoMheight=0.45, g=9.8, previewStepNum=240, stride=0.1, initialTargetZMP=np.array([0.,0.]), initialFootPrint=np.array([[[0.,0.065],[0.,-0.065]]]), R=np.matrix([1.]), Q=np.matrix([[7000,0,0,0],
                                                                                                                                                                                                                                                                 [0,1,0,0],
                                                                                                                                                                                                                                                                 [0,0,1,0],
                                                                                                                                                                                                                                                                 [0,0,0,1]])):
@@ -62,24 +62,25 @@ class PreviewControl:
         self.swingLeg = self._RIGHT_LEG
         self.supportLeg = self._LEFT_LEG
 
-        self.inputTargetZMPold = initialTargetZMP
+        self.targetZMPold = np.array([initialTargetZMP])
 
         self.currentFootStep = 0
 
 
 
     def footPrintAndCOMtrajectoryGenerator(self, inputTargetZMP,inputFootPrint):
+        currentFootStep = 0
 
         self.footPrints = self.footOneStep(self.footPrints,inputFootPrint, self.supportLeg)
 
-        input_px_ref, input_py_ref = self.targetZMPgenerator(inputTargetZMP, self.inputTargetZMPold, self.Tsup,self.Tdl)
-        
+        input_px_ref, input_py_ref = self.targetZMPgenerator(inputTargetZMP, self.targetZMPold[-1], self.Tsup,self.Tdl)
 
-        self.px_ref_log = np.append(self.px_ref_log, input_px_ref)
-        self.py_ref_log = np.append(self.py_ref_log, input_py_ref)
 
         self.px_ref = self.fifo(self.px_ref, input_px_ref, len(input_px_ref))
         self.py_ref = self.fifo(self.py_ref, input_py_ref, len(input_py_ref))
+
+        self.px_ref_log = np.append(self.px_ref_log, input_px_ref)
+        self.py_ref_log = np.append(self.py_ref_log, input_py_ref)
 
         CoMTrajectory = np.empty((0,3), float)
         startRobotVelocity = np.array([self.x[1],self.y[1]])
@@ -120,17 +121,16 @@ class PreviewControl:
 
         robotEndVelocity = np.array([self.x[1],self.y[1],0.])
 
-        currentFootStep = 0
         leftTrj,rightTrj = self.footTrajectoryGenerator(np.hstack((self.footPrints[currentFootStep,self.swingLeg], 0.)),
                                                         np.hstack((self.footPrints[currentFootStep+1,self.swingLeg], 0.)),
-                                                        startRobotVelocity,
-                                                        robotEndVelocity,
+                                                        np.array([0.,0.,0.]),
+                                                        np.array([0.,0.,0.]),
                                                         np.hstack((self.footPrints[currentFootStep,self.supportLeg],0.)),
                                                         self.swingLeg)
 
         
         self.swingLeg, self.supportLeg = self.changeSupportLeg(self.swingLeg, self.supportLeg)
-        self.inputTargetZMPold = inputTargetZMP
+        self.targetZMPold = np.vstack((self.targetZMPold, inputTargetZMP))
         
 
         return CoMTrajectory, leftTrj, rightTrj
@@ -156,15 +156,6 @@ class PreviewControl:
                                             np.full(self.Tdl,swingStartPointV[1]),
                                             np.full(self.Tdl,swingStartPointV[2]))).T
 
-        swingTrajectoryForTsup = st.swingTrajectoryGenerator(swingStartPointV, swingEndPointV, -startRobotVelocityV_xy, -endRobotVelocityV ,zheight, 0.,self.Tsup*self.dt,self.dt) 
-        if swingLeg is self._RIGHT_LEG:
-            trjR = np.vstack((swingTrajectoryForTdl,swingTrajectoryForTsup))
-            trjL = supportTrajectory
-        elif swingLeg is self._LEFT_LEG:
-            trjL = np.vstack((swingTrajectoryForTdl,swingTrajectoryForTsup))
-            trjR = supportTrajectory
-        #swing leg trajectory for Tsup
-        '''
         if np.array_equal(swingStartPointV, swingEndPointV):
             swingTrajectoryForTsup = np.vstack((np.full(self.Tsup,swingEndPointV[0]),
                                             np.full(self.Tsup,swingEndPointV[1]),
@@ -172,7 +163,14 @@ class PreviewControl:
         
         else:
             swingTrajectoryForTsup = st.swingTrajectoryGenerator(swingStartPointV, swingEndPointV, -startRobotVelocityV_xy, -endRobotVelocityV ,zheight, 0.,self.Tsup*self.dt,self.dt) 
-        '''
+
+        if swingLeg is self._RIGHT_LEG:
+            trjR = np.vstack((swingTrajectoryForTdl,swingTrajectoryForTsup))
+            trjL = supportTrajectory
+        elif swingLeg is self._LEFT_LEG:
+            trjL = np.vstack((swingTrajectoryForTdl,swingTrajectoryForTsup))
+            trjR = supportTrajectory
+
         return trjL, trjR
 
     def fifo(self, p, in_p, range, vstack=False):
