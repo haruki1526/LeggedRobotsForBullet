@@ -1,10 +1,14 @@
 # LeggedRobot
-Bipedal and Quadrupedal Robot on PyBullet
+Bipedal and Quadrupedal Robot in Bullet
 
 ![](./images/bipedal_robot.png)
 
 ## Bipedal
-### walking\_with\_preview\_control.py
-The robot walks with preview pontrol.
+### walking 
+```
+walking\_with\_preview\_control.py
+```
+
+
 
 
