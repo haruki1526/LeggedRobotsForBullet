@@ -48,8 +48,8 @@ def trajectoryGenerator_z(zheight, startPoint,endPoint,endVelocity,startTime,end
 
     time_v = np.arange(startTime, endTime, dt)
     
-    z=C[0]*(time_v**3)+C[1]*(time_v**2)+C[2]*time_v+C[3] #位置
-    v=3*C[0]*(time_v**2)+2*C[1]*time_v+C[2] #速度
+    z=C[0]*(time_v**3)+C[1]*(time_v**2)+C[2]*time_v+C[3] #z position
+    v=3*C[0]*(time_v**2)+2*C[1]*time_v+C[2] #velocity
     a=6*C[0]*time_v+2*C[1]
 
 

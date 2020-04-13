@@ -49,7 +49,7 @@ class Robot:
 class Bipedal(Robot):
 
     def __init__(self, startPosition=[0,0,0.55], startOrientation=[0,0,0], CoMposition_b=np.array([0.,0.,-0.02]),maxForce=9.0, controlMode=pb.POSITION_CONTROL, robotPATH="urdf/bipedal.urdf", planePATH="plane.urdf"):
-        super().__init__(robotPATH=robotPATH, startPosition=startPosition, startOrientation=startOrientation, maxForce=maxForce, controlMode=controlMode, planePATH=planePATH)
+        super().__init__(robotPATH, startPosition, startOrientation, maxForce, controlMode=controlMode, planePATH=planePATH)
 
         self._lambda = 1.0
         self._L1 = 0.18
