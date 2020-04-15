@@ -12,7 +12,8 @@ Bipedal and Quadrupedal Robot in Bullet.
 walking_with_preview_control.py
 ```
 
-![](./images/bipedal_robot.png)
 
+
+![result](https://github.com/haruki1526/LeggedRobotsForBulletGifs/blob/master/bipedal/preview_control.gif)
 
 
