@@ -11,7 +11,6 @@ if __name__ == "__main__":
     targetPositionLH = np.array([-0.2,0.11,-0.2])
 
     qdrp = Quadrupedal(initialCoMheight=0.3,startPosition=[0,0,0.55],startOrientation=[0.,0.,0.], CoMposition_b=np.array([0.,0.,-0.02]), maxForce=12,robotPATH="urdf/quadrupedal.urdf")
-    print("kita")
 
     while(1):
         for i in np.arange(0,0.1,0.001):
@@ -19,7 +18,6 @@ if __name__ == "__main__":
             targetPositionRF[2] += 0.001
             targetPositionLH[2] += 0.001
             targetPositionRH[2] += 0.001
-            print("tar=",targetPositionLF)
             LFjointPositions = qdrp.inverseKinematics(targetPositionRH,targetLeg=qdrp.legRH)
             RFjointPositions = qdrp.inverseKinematics(targetPositionRF,targetLeg=qdrp.legRF)
             LHjointPositions = qdrp.inverseKinematics(targetPositionLF,targetLeg=qdrp.legLF)
