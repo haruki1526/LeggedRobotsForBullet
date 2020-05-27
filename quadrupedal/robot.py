@@ -66,6 +66,15 @@ class Leg:
         pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, forces=self.maxForceList, targetPositions=targetPositions)
 
 
+    def torqueControlModeEnable(self):
+        pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=pb.VELOCITY_CONTROL, forces=[0 for i in range(self.DOF)])
+        self.controlMode = pb.TORQUE_CONTROL
+
+    
+    def setTorqueArray(self,torque):
+        pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, forces=torque)
+
+
 
 
 
@@ -101,6 +110,15 @@ class Quadrupedal(Robot):
                                         np.hstack((self.legRH.firstJointOrigin[0:2], -initialCoMheight)) ]),
                         initialPosition=startPosition, 
                         initialOrientation=[0.,0.,0.,1.])
+
+    
+
+    def torqueControlModeEnableAll(self):
+        self.legRF.torqueControlModeEnable()
+        self.legLF.torqueControlModeEnable()
+        self.legRH.torqueControlModeEnable()
+        self.legLH.torqueControlModeEnable()
+
 
     def forwardKinematics(self, jointPositions, targetLeg, fullReturn=False):
         abadJoint = jointPositions[0]
@@ -144,7 +162,11 @@ class Quadrupedal(Robot):
 
         return J
 
+        
+
+
     def initializer(self,initialFootPrints,initialPosition, initialOrientation, initialJointPosition=np.array([0.,0.2,-0.4]), initializeTime=1.):
+
 
         for i in np.arange(0,initializeTime/self._timeStep,1):
             self.resetRobotPositionAndOrientation(initialPosition, initialOrientation)
@@ -153,6 +175,7 @@ class Quadrupedal(Robot):
             self.legRH.setJointPositions(initialJointPosition)
             self.legLH.setJointPositions(initialJointPosition)
             self.oneStep()
+
 
         for i in np.arange(0,initializeTime/self._timeStep,1):
             posLF = self.inverseKinematics(initialFootPrints[0], self.legLF)
