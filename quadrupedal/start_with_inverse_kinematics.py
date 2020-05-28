@@ -18,10 +18,10 @@ if __name__ == "__main__":
             targetPositionRF[2] += 0.001
             targetPositionLH[2] += 0.001
             targetPositionRH[2] += 0.001
-            LFjointPositions = qdrp.inverseKinematics(targetPositionRH,targetLeg=qdrp.legRH)
+            LFjointPositions = qdrp.inverseKinematics(targetPositionLF,targetLeg=qdrp.legLF)
             RFjointPositions = qdrp.inverseKinematics(targetPositionRF,targetLeg=qdrp.legRF)
-            LHjointPositions = qdrp.inverseKinematics(targetPositionLF,targetLeg=qdrp.legLF)
-            RHjointPositions = qdrp.inverseKinematics(targetPositionLH,targetLeg=qdrp.legLH)
+            LHjointPositions = qdrp.inverseKinematics(targetPositionLH,targetLeg=qdrp.legLH)
+            RHjointPositions = qdrp.inverseKinematics(targetPositionRH,targetLeg=qdrp.legRH)
             qdrp.legLF.setJointPositions(LFjointPositions)
             qdrp.legRF.setJointPositions(RFjointPositions)
             qdrp.legLH.setJointPositions(LHjointPositions)
@@ -33,10 +33,10 @@ if __name__ == "__main__":
             targetPositionRF[2] -= 0.001
             targetPositionLH[2] -= 0.001
             targetPositionRH[2] -= 0.001
-            LFjointPositions = qdrp.inverseKinematics(targetPositionRH,targetLeg=qdrp.legRH)
+            LFjointPositions = qdrp.inverseKinematics(targetPositionLF,targetLeg=qdrp.legLF)
             RFjointPositions = qdrp.inverseKinematics(targetPositionRF,targetLeg=qdrp.legRF)
-            LHjointPositions = qdrp.inverseKinematics(targetPositionLF,targetLeg=qdrp.legLF)
-            RHjointPositions = qdrp.inverseKinematics(targetPositionLH,targetLeg=qdrp.legLH)
+            LHjointPositions = qdrp.inverseKinematics(targetPositionLH,targetLeg=qdrp.legLH)
+            RHjointPositions = qdrp.inverseKinematics(targetPositionRH,targetLeg=qdrp.legRH)
             qdrp.legLF.setJointPositions(LFjointPositions)
             qdrp.legRF.setJointPositions(RFjointPositions)
             qdrp.legLH.setJointPositions(LHjointPositions)
