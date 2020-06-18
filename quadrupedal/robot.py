@@ -5,6 +5,21 @@ import time
 import tform as tf
 import scipy.linalg as la
 
+class IMU:
+    def __init__(self, robotId):
+        self._robotId = robotId
+
+    def getEularAndPosition(self):
+        pos, qua = pb.getBasePositionAndOrientation(self._robotId)
+        return pb.getEulerFromQuaternion(qua), pos
+
+    def getLinerAndAngularVelocity(self):
+        return pb.getBaseVelocity(self._robotId)
+
+
+
+
+
 class Robot:
     def __init__(self, robotPATH, startPosition, startOrientation, maxForce,
                 controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
@@ -21,10 +36,12 @@ class Robot:
         self._maxForceList = [maxForce for i in range(self.numJoint)]
 
         self._timeStep = 1./240. 
-        self._bodyLinkId = 0
+        self._bodyLinkId = -1
 
 
-        
+
+    def getBodyLinkState(self):
+        return pb.getLinkState(self._robotId, self._bodyLinkId)
 
     def getEuler(self):
         _, qua = pb.getBasePositionAndOrientation(self._robotId)
@@ -128,6 +145,7 @@ class Quadrupedal(Robot):
         self.inertiaTensor[1,1] = 0.043070296402
         self.inertiaTensor[2,2] = 0.052179256932
 
+        self.imu = IMU(self._robotId)
 
     def torqueControlModeEnableAll(self):
         self.legRF.torqueControlModeEnable()
