@@ -6,7 +6,8 @@ import tform as tf
 import scipy.linalg as la
 
 class Robot:
-    def __init__(self, robotPATH, startPosition, startOrientation, maxForce, controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
+    def __init__(self, robotPATH, startPosition, startOrientation, maxForce,
+                controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
         physicsClient = pb.connect(pb.GUI)
         pb.setAdditionalSearchPath(pybullet_data.getDataPath())
         pb.setGravity(0,0,-9.8)
@@ -20,7 +21,10 @@ class Robot:
         self._maxForceList = [maxForce for i in range(self.numJoint)]
 
         self._timeStep = 1./240. 
+        self._bodyLinkId = 0
 
+
+        
 
     def getEuler(self):
         _, qua = pb.getBasePositionAndOrientation(self._robotId)
@@ -39,13 +43,14 @@ class Robot:
 
     def oneStep(self):
         
+
         robotPosition, _ = pb.getBasePositionAndOrientation(self._robotId)
-        pb.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=135, cameraPitch=-10, cameraTargetPosition=robotPosition)
+        pb.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=135, cameraPitch=-10, cameraTargetPosition=robotPosition)
         pb.stepSimulation()
         time.sleep(self._timeStep)
 
 class Leg:
-    def __init__(self,robotId,name,firstJointOrigin,DoF,IdIndices,axisMatrix, maxForce=12, maxVelocity=10, mode=pb.POSITION_CONTROL):
+    def __init__(self,robotId,name,firstJointOrigin,DoF,IdIndices,axisMatrix, maxForce=12, maxVelocity=10, kpGain=0.03, kdGain=0.03, mode=pb.POSITION_CONTROL):
         self._robotId = robotId
         self.firstJointOrigin = firstJointOrigin
         self.DOF = DoF
@@ -56,6 +61,9 @@ class Leg:
         self.maxForceList = [maxForce for i in range(DoF)]
         self.controlMode = mode
 
+        self.kpGainId = pb.addUserDebugParameter("kpGain"+name , 0, 1.5, 0.1)
+        self.kdGainId = pb.addUserDebugParameter("kdGain"+name, 0, 1.5, 0.03)
+
     def getJointPositions(self):
         jointStates = pb.getJointStates(self._robotId, jointIndices=self.IdIndices)
         jointPositions = [jointStates[i][0] for i in range(self.DOF)]
@@ -63,7 +71,12 @@ class Leg:
         return jointPositions
 
     def setJointPositions(self,targetPositions):
-        pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, forces=self.maxForceList, targetPositions=targetPositions)
+        kpGain = pb.readUserDebugParameter(self.kpGainId)
+        kdGain = pb.readUserDebugParameter(self.kdGainId)
+        kpGains = [kpGain for i in range(self.DOF)]
+        kdGains = [kdGain for i in range(self.DOF)]
+        pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, 
+                                    forces=self.maxForceList, positionGains=kpGains, velocityGains=kdGains, targetPositions=targetPositions)
 
 
     def torqueControlModeEnable(self):
@@ -79,7 +92,7 @@ class Leg:
 
 
 class Quadrupedal(Robot):
-    def __init__(self, robotPATH,initialCoMheight,startPosition=[0,0,0.55], startOrientation=[0.,0.,0.], CoMposition_b=np.array([0.,0.,-0.01]),maxForce=9.0, controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
+    def __init__(self, robotPATH,initialCoMheight,startPosition=[0,0,0.55], startOrientation=[0.,0.,0.],maxForce=9.0, controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
         super().__init__(robotPATH=robotPATH, startPosition=startPosition, startOrientation=startOrientation, maxForce=maxForce, controlMode=controlMode, planePATH=planePATH)
 
         self.L1 = 0.18
@@ -100,7 +113,6 @@ class Quadrupedal(Robot):
 
         self.LEG_NUM = 4
         self._E = np.eye(3)
-        
 
         self.jacobi_lambda = 1.
 
@@ -111,7 +123,11 @@ class Quadrupedal(Robot):
                         initialPosition=startPosition, 
                         initialOrientation=[0.,0.,0.,1.])
 
-    
+        self.inertiaTensor = np.matrix(np.zeros((3,3)))
+        self.inertiaTensor[0,0] = 0.017409405067
+        self.inertiaTensor[1,1] = 0.043070296402
+        self.inertiaTensor[2,2] = 0.052179256932
+
 
     def torqueControlModeEnableAll(self):
         self.legRF.torqueControlModeEnable()
