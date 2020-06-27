@@ -21,7 +21,7 @@ class IMU:
 
 
 class Robot:
-    def __init__(self, robotPATH, startPosition, startOrientation, maxForce,
+    def __init__(self, timeStep, robotPATH, startPosition, startOrientation, maxForce,
                 controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
         physicsClient = pb.connect(pb.GUI)
         pb.setAdditionalSearchPath(pybullet_data.getDataPath())
@@ -35,10 +35,12 @@ class Robot:
         self.maxForce = maxForce
         self._maxForceList = [maxForce for i in range(self.numJoint)]
 
-        self._timeStep = 1./240. 
+        self._timeStep = timeStep
         self._bodyLinkId = -1
 
 
+    def getTimeStep(self):
+        return self._timeStep
 
     def getBodyLinkState(self):
         return pb.getLinkState(self._robotId, self._bodyLinkId)
@@ -67,7 +69,7 @@ class Robot:
         time.sleep(self._timeStep)
 
 class Leg:
-    def __init__(self,robotId,name,firstJointOrigin,DoF,IdIndices,axisMatrix, maxForce=12, maxVelocity=10, kpGain=0.03, kdGain=0.03, mode=pb.POSITION_CONTROL):
+    def __init__(self,robotId,name,firstJointOrigin,DoF,IdIndices,axisMatrix, maxForce=12, maxVelocity=10, mode=pb.POSITION_CONTROL):
         self._robotId = robotId
         self.firstJointOrigin = firstJointOrigin
         self.DOF = DoF
@@ -78,8 +80,12 @@ class Leg:
         self.maxForceList = [maxForce for i in range(DoF)]
         self.controlMode = mode
 
+
+    def kpkdGainDebugEnavle():
         self.kpGainId = pb.addUserDebugParameter("kpGain"+name , 0, 1.5, 0.1)
         self.kdGainId = pb.addUserDebugParameter("kdGain"+name, 0, 1.5, 0.03)
+        self.kpkdDebug = True
+
 
     def getJointPositions(self):
         jointStates = pb.getJointStates(self._robotId, jointIndices=self.IdIndices)
@@ -87,14 +93,20 @@ class Leg:
 
         return jointPositions
 
-    def setJointPositions(self,targetPositions):
-        kpGain = pb.readUserDebugParameter(self.kpGainId)
-        kdGain = pb.readUserDebugParameter(self.kdGainId)
-        kpGains = [kpGain for i in range(self.DOF)]
-        kdGains = [kdGain for i in range(self.DOF)]
-        pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, 
+    def setJointPositionsGainDebug(self,targetPositions):
+        if self.kpkdDebug is True:
+            kpGain = pb.readUserDebugParameter(self.kpGainId)
+            kdGain = pb.readUserDebugParameter(self.kdGainId)
+            kpGains = [kpGain for i in range(self.DOF)]
+            kdGains = [kdGain for i in range(self.DOF)]
+            pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, 
                                     forces=self.maxForceList, positionGains=kpGains, velocityGains=kdGains, targetPositions=targetPositions)
+        else:
+            print("Error:kpkdDebug is False")
 
+    def setJointPositions(self,targetPositions):
+        pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, 
+                                    forces=self.maxForceList,targetPositions=targetPositions)
 
     def torqueControlModeEnable(self):
         pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=pb.VELOCITY_CONTROL, forces=[0 for i in range(self.DOF)])
@@ -109,8 +121,8 @@ class Leg:
 
 
 class Quadrupedal(Robot):
-    def __init__(self, robotPATH,initialCoMheight,startPosition=[0,0,0.55], startOrientation=[0.,0.,0.],maxForce=9.0, controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
-        super().__init__(robotPATH=robotPATH, startPosition=startPosition, startOrientation=startOrientation, maxForce=maxForce, controlMode=controlMode, planePATH=planePATH)
+    def __init__(self, timeStep, robotPATH,initialCoMheight,startPosition=[0,0,0.55], startOrientation=[0.,0.,0.],maxForce=9.0, controlMode=pb.POSITION_CONTROL, planePATH="plane.urdf"):
+        super().__init__(timeStep=timeStep,robotPATH=robotPATH, startPosition=startPosition, startOrientation=startOrientation, maxForce=maxForce, controlMode=controlMode, planePATH=planePATH)
 
         self.L1 = 0.18
         self.L2 = 0.18

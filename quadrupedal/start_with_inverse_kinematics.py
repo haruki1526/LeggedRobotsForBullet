@@ -10,7 +10,7 @@ if __name__ == "__main__":
     targetPositionLF = np.array([0.2,0.11,-0.2])
     targetPositionLH = np.array([-0.2,0.11,-0.2])
 
-    qdrp = Quadrupedal(initialCoMheight=0.3,startPosition=[0,0,0.55],startOrientation=[0.,0.,0.], CoMposition_b=np.array([0.,0.,-0.02]), maxForce=12,robotPATH="urdf/quadrupedal.urdf")
+    qdrp = Quadrupedal(timeStep=1./240., initialCoMheight=0.3,startPosition=[0,0,0.55],startOrientation=[0.,0.,0.], maxForce=12,robotPATH="urdf/quadrupedal.urdf")
 
     while(1):
         for i in np.arange(0,0.1,0.001):
