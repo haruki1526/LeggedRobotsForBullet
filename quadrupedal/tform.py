@@ -43,6 +43,15 @@ def skewSymmetricMatrix(v):
                         [-v[1], v[0], 0]])
     return matrix
 
+def skewSymmetricMatrixInv(m):
+    vector = np.zeros(3)
+    vector[0] = m[2,1]
+    vector[1] = m[0,2]
+    vector[2] = m[1,0]
+
+    return vector
+
+
 
 def roadriguesEquation(E, a, theta):
     a_h = skewSymmetricMatrix(a)
