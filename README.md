@@ -9,7 +9,7 @@ Bipedal and Quadrupedal Robot in Bullet.
 ## Bipedal
 ### walking 
 ```
-walking_with_preview_control.py
+example_preview_control.py
 ```
 ![result](https://github.com/haruki1526/LeggedRobotsForBulletGifs/blob/master/bipedal/preview_control.gif)
 
@@ -17,6 +17,6 @@ walking_with_preview_control.py
 ## Quadrupedal
 ### Inverse Kinematics
 ```
-start_with_inverse_kinematics.py
+example_stand_up.py
 ```
 ![result](https://github.com/haruki1526/LeggedRobotsForBulletGifs/blob/master/quadrupedal/inverse_kinematics.gif)
