@@ -4,6 +4,8 @@ import numpy as np
 import time
 import tform as tf
 import scipy.linalg as la
+from inverse_dynamics import InverseDynamics
+
 
 class IMU:
     def __init__(self, robotId):
@@ -15,9 +17,6 @@ class IMU:
 
     def getLinerAndAngularVelocity(self):
         return pb.getBaseVelocity(self._robotId)
-
-
-
 
 
 class Robot:
@@ -64,7 +63,7 @@ class Robot:
         
 
         robotPosition, _ = pb.getBasePositionAndOrientation(self._robotId)
-        pb.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=135, cameraPitch=-10, cameraTargetPosition=robotPosition)
+        pb.resetDebugVisualizerCamera(cameraDistance=1.0, cameraYaw=180, cameraPitch=-10, cameraTargetPosition=robotPosition)
         pb.stepSimulation()
         time.sleep(self._timeStep)
 
@@ -79,12 +78,23 @@ class Leg:
         self.maxVelocity = maxVelocity
         self.maxForceList = [maxForce for i in range(DoF)]
         self.controlMode = mode
+        self.linkInertiaList =  [np.matrix(np.zeros((3,3))),
+                                np.matrix([[0.002312157023,0.,0.],
+                                                [0., 0.002476174735, 0.],
+                                                [0.,0.,0.00028213453]]),
 
+                                np.matrix([[0.000664235357,0.,0.],
+                                                [0.,0.000664515268,0.],
+                                                [0.,0.,0.000019650311]])]
+        self.jointPosVectors = [firstJointOrigin, 
+                                         np.zeros(3),
+                                         np.array([0,0,-0.18]), 
+                                         np.array([0,0,-0.18])]
 
-    def kpkdGainDebugEnavle():
-        self.kpGainId = pb.addUserDebugParameter("kpGain"+name , 0, 1.5, 0.1)
-        self.kdGainId = pb.addUserDebugParameter("kdGain"+name, 0, 1.5, 0.03)
-        self.kpkdDebug = True
+        self.inverseDynamics = InverseDynamics(jointVectorList=self.jointPosVectors, 
+                                                linkInertiaList=self.linkInertiaList,
+                                                comVectorList=[np.zeros(3),np.array([0.,0.,-0.033267]),np.array([0.,0.,-0.155989])],
+                                                linkMassList=[0.,0.376687,0.140882])
 
 
     def getJointPositions(self):
@@ -93,20 +103,16 @@ class Leg:
 
         return jointPositions
 
-    def setJointPositionsGainDebug(self,targetPositions):
-        if self.kpkdDebug is True:
-            kpGain = pb.readUserDebugParameter(self.kpGainId)
-            kdGain = pb.readUserDebugParameter(self.kdGainId)
-            kpGains = [kpGain for i in range(self.DOF)]
-            kdGains = [kdGain for i in range(self.DOF)]
-            pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, 
-                                    forces=self.maxForceList, positionGains=kpGains, velocityGains=kdGains, targetPositions=targetPositions)
-        else:
-            print("Error:kpkdDebug is False")
+    def getJointVelocity(self):
+        jointStates = pb.getJointStates(self._robotId, jointIndices=self.IdIndices)
+        jointVelocity = [jointStates[i][1] for i in range(self.DOF)]
+
+        return jointVelocity
 
     def setJointPositions(self,targetPositions):
         pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, 
                                     forces=self.maxForceList,targetPositions=targetPositions)
+
 
     def torqueControlModeEnable(self):
         pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=pb.VELOCITY_CONTROL, forces=[0 for i in range(self.DOF)])
@@ -114,7 +120,9 @@ class Leg:
 
     
     def setTorqueArray(self,torque):
+
         pb.setJointMotorControlArray(self._robotId, jointIndices=self.IdIndices, controlMode=self.controlMode, forces=torque)
+
 
 
 
@@ -126,8 +134,8 @@ class Quadrupedal(Robot):
 
         self.L1 = 0.18
         self.L2 = 0.18
-        #joint axis matrix [roll, pitch, yaw]
-        self.a = np.array([[1,0,0],
+        
+        self.a = np.array([[1,0,0],  #joint axis matrix [roll, pitch, yaw]
                             [0,1,0],
                             [0,1,0]])
 
@@ -145,12 +153,13 @@ class Quadrupedal(Robot):
 
         self.jacobi_lambda = 1.
 
+
         self.initializer(initialFootPrints=np.array([ np.hstack((self.legLF.firstJointOrigin[0:2], -initialCoMheight)),
                                         np.hstack((self.legLH.firstJointOrigin[0:2], -initialCoMheight)),  
                                         np.hstack((self.legRF.firstJointOrigin[0:2], -initialCoMheight)),
                                         np.hstack((self.legRH.firstJointOrigin[0:2], -initialCoMheight)) ]),
                         initialPosition=startPosition, 
-                        initialOrientation=[0.,0.,0.,1.])
+                        initialOrientation=pb.getQuaternionFromEuler(startOrientation))
 
         self.inertiaTensor = np.matrix(np.zeros((3,3)))
         self.inertiaTensor[0,0] = 0.017409405067
@@ -192,9 +201,24 @@ class Quadrupedal(Robot):
         dp = position_ref - position
 
         dq = self.jacobi_lambda * la.inv(self.jacobian(q, targetLeg)).dot(dp)
+        #dq = self.jacobi_lambda * la.inv(self.jacobian2(q, targetLeg.jointPosVectors)).dot(dp)
 
         return q+dq
 
+    def inverseDynamics(self, acceleration_ref,position_ref, velocity_ref,targetLeg):
+        jointPositions = targetLeg.getJointPositions()
+        jointVelocity = targetLeg.getJointVelocity()
+        j = self.jacobian2(theta=jointPositions,linkVector=targetLeg.jointPosVectors)
+        dj = self.diffJacobian(theta=jointPositions,diffTheta=jointVelocity,linkVector=targetLeg.jointPosVectors)
+
+        _, x =  self.forwardKinematics(jointPositions=jointPositions,targetLeg=targetLeg)
+
+
+        tau = targetLeg.inverseDynamics.solve(acceleration_ref=acceleration_ref,position=x,position_ref=position_ref,velocity_ref=velocity_ref,
+                                            jointVelocity=jointVelocity,jointPosition=jointPositions,jacobian=j,diffJacobian=dj)
+        
+        return tau
+        
     def jacobian(self, q, targetLeg):
         T_0_E = self.forwardKinematics(q, targetLeg, fullReturn=True)
         zero_v = np.zeros(3)
@@ -208,7 +232,67 @@ class Quadrupedal(Robot):
 
         return J
 
+    def jacobian2(self,theta,linkVector):
+        b2 = linkVector[1]
+        b3 = linkVector[2]
+        b4 = linkVector[3]
+
+        sinq1 = np.sin(theta[0])
+        sinq2 = np.sin(theta[1])
+        sinq3 = np.sin(theta[2])
+        cosq1 = np.cos(theta[0])
+        cosq2 = np.cos(theta[1])
+        cosq3 = np.cos(theta[2])
+        cosq2q3 = np.cos(theta[1]+theta[2])
+        sinq2q3 = np.sin(theta[1]+theta[2])
+        dxdq1 = 0
+        dxdq2 = b4[2]*cosq2q3-b4[0]*sinq2q3+b3[2]*cosq2-b3[0]*sinq2
+        dxdq3 = b4[2]*cosq2q3-b4[0]*sinq2q3
+        dydq1 = b4[0]*cosq1*sinq2q3+sinq1*(-b2[1]-b3[1]-b4[1])-b2[2]*cosq1-b4[2]*cosq1*cosq2q3-b3[2]*cosq1*cosq2+b3[0]*cosq1*sinq2
+        dydq2 = sinq1*(b4[0]*cosq2q3+b4[2]*sinq2q3+b3[0]*cosq2+b3[2]*sinq2)
+        dydq3 = sinq1*(b4[0]*cosq2q3+b4[2]*sinq2q3)
+        dzdq1 = b4[0]*sinq1*sinq2q3 + b4[2]*sinq1*cosq2q3 + cosq1*(b2[1]+b3[1]+b4[1])+sinq1*(-b2[2]-b3[2]*cosq2+b3[0]*sinq2)
+        dzdq2 = -cosq1*(b4[0]*cosq2q3+b4[2]*sinq2q3+b3[0]*cosq2+b3[2]*sinq2)
+        dzdq3 = -cosq1*(b4[0]*cosq2q3+b4[2]*sinq2q3)
+        j = np.matrix([[dxdq1,dxdq2,dxdq3],
+                [dydq1,dydq2,dydq3],
+                [dzdq1,dzdq2,dzdq3]])
+        return j
         
+    def diffJacobian(self,theta,diffTheta,linkVector):
+        b2 = linkVector[1]
+        b3 = linkVector[2]
+        b4 = linkVector[3]
+        sinq1 = np.sin(theta[0])
+        sinq2 = np.sin(theta[1])
+        sinq3 = np.sin(theta[2])
+        cosq1 = np.cos(theta[0])
+        cosq2 = np.cos(theta[1])
+        cosq3 = np.cos(theta[2])
+        cosq2q3 = np.cos(theta[1]+theta[2])
+        sinq2q3 = np.sin(theta[1]+theta[2])
+        dq1 = diffTheta[0]
+        dq2 = diffTheta[1]
+        dq3 = diffTheta[2]
+        diffdxdq1 = 0
+        diffdxdq2 = b4[2]*(-sinq2q3*(dq2+dq3))-b4[0]*cosq2q3*(dq2+dq3)-b3[2]*dq2*sinq2-b3[0]*dq2*cosq2
+        diffdxdq3 = b4[2]*(-sinq2q3*(dq2+dq3))-b4[0]*cosq2q3*(dq2+dq3)
+        diffdydq1 = b4[0]*(-dq1*sinq1*sinq2q3+cosq1*(dq2+dq3)*cosq2q3)+dq1*cosq1*(-b2[1]-b3[1]-b4[1])+b2[2]*dq1*sinq1 \
+        -b4[2]*(-dq1*sinq1*cosq2q3-cosq1*(dq2+dq3)*sinq2q3)-b3[2]*(-dq1*sinq1*cosq2-dq2*cosq1*sinq2)+b3[0]*(-dq1*sinq1*sinq2+dq2*cosq1*cosq2) 
+        diffdydq2 = dq1*cosq1*(b4[0]*cosq2q3+b4[2]*sinq2q3+b3[0]*cosq2+b3[2]*sinq2)+sinq1*(-b4[0]*(dq2+dq3)*sinq2q3+b4[2]*(dq2+dq3)*cosq2q3-b3[0]*dq2*sinq2+b3[2]*dq2*cosq2)
+        diffdydq3 = dq1*cosq1*(b4[0]*cosq2q3+b4[2]*sinq2q3)+sinq1*(-b4[0]*(dq2+dq3)*sinq2q3+b4[2]*(dq2+dq3)*cosq2q3)
+        diffdzdq1 = b4[0]*(dq1*cosq1*sinq2q3+sinq1*(dq2+dq3)*cosq2q3) \
+                    +b4[2]*(dq1*cosq1*cosq2q3-sinq1*(dq2+dq3)*sinq2q3)-dq1*sinq1*(b2[1]+b3[1]+b4[1]) \
+                    +dq1*cosq1*(-b2[2]-b3[2]*cosq2+b3[0]*sinq2)+sinq1*(b3[2]*dq2*sinq2+b3[0]*dq2*cosq2)
+        diffdzdq2 = dq1*sinq1*(b4[0]*cosq2q3+b4[2]*sinq2q3+b3[0]*cosq2+b3[2]*sinq2)-cosq1*(-b4[0]*(dq2+dq3)*sinq2q3+b4[2]*(dq2+dq3)*cosq2q3-b3[0]*dq2*sinq2+b3[2]*dq2*cosq2)
+        diffdzdq3 = dq1*sinq1*(b4[0]*cosq2q3+b4[2]*sinq2q3)-cosq1*(-b4[0]*(dq2+dq3)*sinq2q3+b4[2]*(dq2+dq3)*cosq2q3)
+
+        dj = np.matrix([[diffdxdq1,diffdxdq2,diffdxdq3],
+                    [diffdydq1,diffdydq2,diffdydq3],
+                    [diffdzdq1,diffdzdq2,diffdzdq3]])
+
+        return dj
+
 
 
     def initializer(self,initialFootPrints,initialPosition, initialOrientation, initialJointPosition=np.array([0.,0.2,-0.4]), initializeTime=1.):
@@ -233,6 +317,16 @@ class Quadrupedal(Robot):
             self.legRH.setJointPositions(posRF)
             self.legLH.setJointPositions(posRH)
             self.oneStep()
+
+    def getTorque(self,index):
+        return pb.getJointState(self._robotId,index)[3]
+
+    def getTorqueList(self,indices):
+        jointStates = pb.getJointStates(self._robotId, jointIndices=indices)
+        l = len(indices)
+        jointTorqueList = [jointStates[i][3] for i in range(l)]
+        return jointTorqueList
+
 
     def disconnect(self):
         pb.disconnect()
