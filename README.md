@@ -1,21 +1,30 @@
 # LeggedRobot
-Bipedal and Quadrupedal Robot in Bullet.
+This repository is a walking robot simulator using pybullet.
 
-## Prerequisites
+## Requirements
  * PyBullet
  * python-control
+ * SciPy
+These packages can be installed by pip.
+```
+pip install pybullet
+pip install control
+pip install scipy
+```
 
 
-## Bipedal
-### walking 
+
+## Bipedal Example
+### Preview Control
 ```
 example_preview_control.py
 ```
 ![result](https://github.com/haruki1526/LeggedRobotsForBulletGifs/blob/master/bipedal/preview_control.gif)
 
 
-## Quadrupedal
+## Quadrupedal Example
 ### Inverse Kinematics
+
 ```
 example_stand_up.py
 ```
