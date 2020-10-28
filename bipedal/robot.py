@@ -1,6 +1,5 @@
 import pybullet as pb
 import pybullet_data
-from motor import Motor
 import numpy as np
 import time
 import tform as tf
@@ -15,10 +14,10 @@ class Robot:
         self._robotId = pb.loadURDF(robotPATH,startPosition, pb.getQuaternionFromEuler(startOrientation))
         self._controlMode = controlMode
         self.numJoint = pb.getNumJoints(self._robotId)
-        self._jointIdList = [i for i in range(self.numJoint)]
+        self._jointIdList = list(range(self.numJoint))
 
         self.maxForce = maxForce
-        self._maxForceList = [maxForce for i in range(self.numJoint)]
+        self._maxForceList = [maxForce]*12
 
         self._timeStep = 1./240. 
 
@@ -37,6 +36,16 @@ class Robot:
 
     def resetRobotPositionAndOrientation(self, position, orientation):
         pb.resetBasePositionAndOrientation(self._robotId, position, orientation)
+
+    def setMotorTorqueByArray(self, targetJointTorqueList):
+        if self._controlMode is pb.TORQUE_CONTROL:
+            pb.setJointMotorControlArray(self._robotId, jointIndices=self._jointIdList, controlMode=pb.TORQUE_CONTROL, forces=targetJointTorqueList)
+        else:
+            print("Error: Mode must be set to TORQUE MODE")
+        
+
+    def setMotorPositionByArray(self, targetJointPositionList):
+        pb.setJointMotorControlArray(self._robotId, jointIndices=self._jointIdList, controlMode=self._controlMode, forces=self._maxForceList, targetPositions=targetJointPositionList)
 
     def oneStep(self):
         
@@ -58,26 +67,9 @@ class Bipedal(Robot):
         self.L = np.array([0,0.065,-0.175]) - CoMposition_b
         self.LEG_DOF = 6
 
-        self.RYawHipJointMotor = Motor(self._robotId, 0, mode=controlMode)
-        self.RRollHipJointMotor = Motor(self._robotId, 1, mode=controlMode)
-        self.RPitchHipJointMotor = Motor(self._robotId, 2, mode=controlMode)
-        self.RKneeJointMotor = Motor(self._robotId, 3, mode=controlMode)
-        self.RPitchAnkleJointMotor = Motor(self._robotId, 4, mode=controlMode)
-        self.RRollAnkleJointMotor = Motor(self._robotId, 5, mode=controlMode)
-
-        self.LYawHipJointMotor = Motor(self._robotId, 6, mode=controlMode)
-        self.LRollHipJointMotor = Motor(self._robotId, 7, mode=controlMode)
-        self.LPitchHipJointMotor = Motor(self._robotId, 8, mode=controlMode)
-        self.LKneeJointMotor = Motor(self._robotId, 9, mode=controlMode)
-        self.LPitchAnkleJointMotor = Motor(self._robotId, 10, mode=controlMode)
-        self.LRollAnkleJointMotor = Motor(self._robotId, 11, mode=controlMode)
-
-        self._jointIdListR = [self.RYawHipJointMotor.Id, self.RRollHipJointMotor.Id, self.RPitchHipJointMotor.Id, 
-                            self.RKneeJointMotor.Id, self.RPitchAnkleJointMotor.Id, self.RRollAnkleJointMotor.Id]
-
-        self._jointIdListL = [self.LYawHipJointMotor.Id, self.LRollHipJointMotor.Id, self.LPitchHipJointMotor.Id, 
-                            self.LKneeJointMotor.Id, self.LPitchAnkleJointMotor.Id, self.LRollAnkleJointMotor.Id]
-        self._maxForceListForLeg = [maxForce for i in range(self.LEG_DOF)]
+        self._jointIdListR = [0,1,2,3,4,5]
+        self._jointIdListL = [6,7,8,9,10,11]
+        self._maxForceListForLeg = [maxForce]*self.LEG_DOF
 
         #joint axis matrix
         self._a = np.array([[0,0,1], 
@@ -90,8 +82,6 @@ class Bipedal(Robot):
         self._E = np.eye(3)
 
 
-    def setMotorPositionByArray(self, targetJointPositions):
-        pb.setJointMotorControlArray(self._robotId, jointIndices=self._jointIdList, controlMode=self._controlMode, forces=self._maxForceList, targetPositions=targetJointPositions)
 
     def setRightLegJointPositions(self, targetJointPositions):
         pb.setJointMotorControlArray(self._robotId, jointIndices=self._jointIdListR, controlMode=self._controlMode, forces=self._maxForceListForLeg, targetPositions=targetJointPositions)
@@ -101,21 +91,10 @@ class Bipedal(Robot):
 
     
 
-    def torqueControlModeEnableForAll(self):
+    def torqueControllModeEnableForAll(self):
 
-        self.RYawHipJointMotor.torqueControlModeEnable()
-        self.RRollHipJointMotor.torqueControlModeEnable()
-        self.RPitchHipJointMotor.torqueControlModeEnable()
-        self.RKneeJointMotor.torqueControlModeEnable()
-        self.RPitchAnkleJointMotor.torqueControlModeEnable()
-        self.RRollAnkleJointMotor.torqueControlModeEnable()
-
-        self.LYawHipJointMotor.torqueControlModeEnable()
-        self.LRollHipJointMotor.torqueControlModeEnable()
-        self.LPitchHipJointMotor.torqueControlModeEnable()
-        self.LKneeJointMotor.torqueControlModeEnable()
-        self.LPitchAnkleJointMotor.torqueControlModeEnable()
-        self.LRollAnkleJointMotor.torqueControlModeEnable()
+        pb.setJointMotorControlArray(self._robotId, jointIndices=self._jointIdList, controlMode=pb.VELOCITY_CONTROL, forces=[0]*12)
+        self._controlMode = pb.TORQUE_CONTROL
         
         
     def getLegTrans(self, jointPositions, leg):
