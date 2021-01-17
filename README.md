@@ -6,7 +6,7 @@ This repository is a walking robot simulator using pybullet.
  * python-control
  * SciPy
 
-These packages can be installed by pip.
+These packages can be installed with pip.
 ```
 pip install pybullet
 pip install control
